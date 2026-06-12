@@ -1130,24 +1130,25 @@ function tourStep(){
     document.getElementById('tourBack').style.visibility=ti===0?'hidden':'visible';
     document.getElementById('tourNext').textContent=ti===TOUR.length-1?'Done':'Next';
     const spot=document.getElementById('tourSpot'), tip=document.getElementById('tourTip');
-    const el=s.target?document.querySelector(s.target):null;
+    const t=s.target?document.querySelector(s.target):null;
+    const el=t?(t.closest('.card')||t):null;
     if(!el){
       spot.style.display='none';
       tip.style.left='50%'; tip.style.top='42%'; tip.style.transform='translate(-50%,-50%)';
       return;
     }
-    el.scrollIntoView({block:'center',behavior:'smooth'});
+    el.scrollIntoView({block:'center',behavior:'auto'});
     setTimeout(()=>{
       const r=el.getBoundingClientRect(), pad=8;
       spot.style.display='block';
       spot.style.left=(r.left-pad)+'px'; spot.style.top=(r.top-pad)+'px';
       spot.style.width=(r.width+pad*2)+'px'; spot.style.height=(r.height+pad*2)+'px';
       tip.style.transform='none';
-      const tipH=180;
+      const tipH=185;
       const top=(window.innerHeight-r.bottom > tipH+24) ? (r.bottom+14) : Math.max(12, r.top-tipH-14);
       const left=Math.min(Math.max(12, r.left), Math.max(12, window.innerWidth-312));
       tip.style.left=left+'px'; tip.style.top=top+'px';
-    }, 340);
+    }, 180);
   }, 70);
 }
 function tourNext(){ if(ti<TOUR.length-1){ ti++; tourStep(); } else tourEnd(); }
