@@ -100,14 +100,14 @@
   .ob-dot.on{background:var(--blue-deep)}
   .ob-row{display:flex;gap:10px;margin-top:8px}
   .ob-row .btn{margin-top:0}
-  #tour{position:fixed;inset:0;z-index:70;pointer-events:auto;display:none}
-  #tourSpot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(35,50,61,.62);border:2px solid #fff;transition:all .35s cubic-bezier(.4,0,.2,1);pointer-events:none}
-  #tourTip{position:fixed;max-width:300px;background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow);pointer-events:auto;transition:left .3s,top .3s}
-  #tourTip h4{margin:0 0 5px;font-size:16px}
-  #tourTip p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
-  #tourRow{display:flex;gap:8px;align-items:center;margin-top:12px}
-  #tourRow .btn{margin-top:0;padding:9px 14px;width:auto}
-  #tourSkip{margin-left:auto;background:none;color:var(--muted);font-size:13px;padding:6px}
+  #coach{position:fixed;left:0;right:0;top:0;z-index:65;background:var(--blue-deep);color:#fff;padding:calc(env(safe-area-inset-top) + 12px) 16px 13px;box-shadow:0 3px 14px rgba(40,80,110,.28);display:none}
+  #coach .c-step{font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.6px}
+  #coach .c-body{font-size:15px;line-height:1.45;margin:4px 0 11px;font-weight:500}
+  #coach .c-row{display:flex;gap:8px;align-items:center}
+  #coach .c-row button{font-family:inherit;border:none;border-radius:10px;font-size:14px;font-weight:600;padding:9px 16px;cursor:pointer}
+  #coach .c-next{background:#fff;color:var(--blue-deep)}
+  #coach .c-back{background:rgba(255,255,255,.18);color:#fff}
+  #coach .c-skip{background:none;color:#fff;opacity:.8;margin-left:auto;padding:9px 10px}
 </style>
 </head>
 <body>
@@ -419,17 +419,13 @@
   </section>
 </main>
 
-<div id="tour">
-  <div id="tourSpot"></div>
-  <div id="tourTip">
-    <h4 id="tourTitle"></h4>
-    <p id="tourBody"></p>
-    <div class="ob-dots" id="tourDots" style="margin:12px 0 0"></div>
-    <div id="tourRow">
-      <button class="btn ghost" id="tourBack" onclick="tourPrev()">Back</button>
-      <button class="btn" id="tourNext" onclick="tourNext()">Next</button>
-      <button id="tourSkip" onclick="tourEnd()">Skip</button>
-    </div>
+<div id="coach">
+  <div class="c-step" id="coachStep"></div>
+  <div class="c-body" id="coachBody"></div>
+  <div class="c-row">
+    <button class="c-back" id="coachBack" onclick="coachPrev()">Back</button>
+    <button class="c-next" id="coachNext" onclick="coachNext()">Next</button>
+    <button class="c-skip" onclick="coachEnd()">Skip</button>
   </div>
 </div>
 
@@ -1107,55 +1103,32 @@ function obPrev(){ if(obI>0){ obI--; obRender(); } }
 function obDone(){ try{localStorage.setItem('depop_onboarded','1');}catch(e){} document.getElementById('onboard').style.display='none'; }
 function replayTutorial(){ startTour(); }
 
-/* ---------- guided spotlight tour ---------- */
-const TOUR=[
-  {tab:'sales', target:null, title:'Welcome! 👋', body:'Quick tour — I\'ll point at each part of your money HQ. Takes 30 seconds.'},
-  {tab:'set', target:'#card-defaults', title:'1. Set your numbers', body:'Tax 30, monthly goal 1000, 1099-K 20000, and your starting balance — then Save. One time only.'},
-  {tab:'sales', target:'#card-addsale', title:'2. Log a sale', body:'Item, sold price, what you paid, the fee (3.3% + $0.45), shipping. It figures your profit + tax. 🎉'},
-  {tab:'sales', target:'#card-topseller', title:'3. Top Seller goals', body:'Your sales fill in automatically. Add your Depop listings, reviews, and issues to chase the 👑.'},
-  {tab:'stock', target:'nav button[data-tab="stock"]', title:'4. Stock', body:'Log things you bought but haven\'t sold. Tap "Sold" when one sells and it becomes a sale.'},
-  {tab:'tax', target:'nav button[data-tab="tax"]', title:'5. Taxes', body:'What to set aside, quarterly due dates, Profit & Loss, and your year-end tax pack.'},
-  {tab:'budget', target:'nav button[data-tab="budget"]', title:'6. Budget', body:'Your balance, recurring bills, and savings goals all live here.'},
-  {tab:'sales', target:null, title:'You\'re set! 💙', body:'Log your first sale and watch the confetti. Go get it, CEO. 👑'}
+/* ---------- guide bar (non-blocking, type as you go) ---------- */
+const COACH=[
+  {tab:null,  body:"Welcome! 👋 I'll walk you through setup. Do each step on the screen, then tap Next."},
+  {tab:'tax', body:"Set your tax %: tap the \"% of profit\" box and type 30 (covers federal + Georgia)."},
+  {tab:'set', body:"In Settings: type your starting bank balance, set Monthly goal to 1000 and 1099-K to 5000, then tap Save."},
+  {tab:'sales', body:"Log a sale: fill in the item, sold price, what you paid, fee (3.3% + $0.45), and shipping. It does the math. 🎉"},
+  {tab:'sales', body:"At the top of Sales, the Top Seller tracker: type in your Depop listings, reviews, and issues. Your sales fill in. 👑"},
+  {tab:'stock', body:"Stock tab: log things you bought but haven't sold yet. Tap \"Sold\" when one sells."},
+  {tab:'tax', body:"Taxes tab also has: what to set aside, Profit & Loss, and your year-end tax pack."},
+  {tab:'budget', body:"Budget tab: your running balance, recurring bills, and savings goals."},
+  {tab:null,  body:"You're all set! 💙 Log your first sale and go get it, CEO. 👑"}
 ];
-let ti=0;
-function startTour(){ ti=0; document.getElementById('tour').style.display='block'; tourStep(); }
-function tourStep(){
-  const s=TOUR[ti];
+let ci=0;
+function startTour(){ ci=0; document.getElementById('coach').style.display='block'; coachRender(); }
+function coachRender(){
+  const s=COACH[ci];
   if(s.tab) go(s.tab);
-  setTimeout(()=>{
-    document.getElementById('tourTitle').textContent=s.title;
-    document.getElementById('tourBody').textContent=s.body;
-    document.getElementById('tourDots').innerHTML=TOUR.map((_,i)=>`<span class="ob-dot ${i===ti?'on':''}" style="display:inline-block;width:7px;height:7px;border-radius:99px;margin:0 3px"></span>`).join('');
-    document.getElementById('tourBack').style.visibility=ti===0?'hidden':'visible';
-    document.getElementById('tourNext').textContent=ti===TOUR.length-1?'Done':'Next';
-    const spot=document.getElementById('tourSpot'), tip=document.getElementById('tourTip');
-    const t=s.target?document.querySelector(s.target):null;
-    const isNav=!!(s.target&&s.target.indexOf('nav')===0);
-    const el=t?(t.closest('.card')||t):null;
-    if(!el){
-      spot.style.display='none';
-      tip.style.transform='translate(-50%,-50%)'; tip.style.left='50%'; tip.style.top='42%';
-      return;
-    }
-    el.scrollIntoView({block: isNav?'center':'start', behavior:'auto'});
-    if(!isNav) window.scrollBy(0,-96); // clear the sticky header so the highlighted part shows
-    setTimeout(()=>{
-      const r=el.getBoundingClientRect(), pad=8;
-      spot.style.display='block';
-      spot.style.left=(r.left-pad)+'px'; spot.style.top=(r.top-pad)+'px';
-      spot.style.width=(r.width+pad*2)+'px'; spot.style.height=(r.height+pad*2)+'px';
-      tip.style.transform='none';
-      const tw=tip.offsetWidth||300, th=tip.offsetHeight||185;
-      const left=Math.min(Math.max(10,(window.innerWidth-tw)/2), Math.max(10, window.innerWidth-tw-10));
-      const top=isNav ? Math.max(14, r.top - th - 16) : (window.innerHeight - th - 92);
-      tip.style.left=left+'px'; tip.style.top=top+'px';
-    }, 180);
-  }, 70);
+  document.getElementById('coachStep').textContent='Step '+(ci+1)+' of '+COACH.length;
+  document.getElementById('coachBody').textContent=s.body;
+  document.getElementById('coachNext').textContent= ci===COACH.length-1 ? 'Done' : 'Next';
+  document.getElementById('coachBack').style.display= ci===0 ? 'none' : 'inline-block';
+  window.scrollTo({top:0,behavior:'auto'});
 }
-function tourNext(){ if(ti<TOUR.length-1){ ti++; tourStep(); } else tourEnd(); }
-function tourPrev(){ if(ti>0){ ti--; tourStep(); } }
-function tourEnd(){ try{localStorage.setItem('depop_onboarded','1');}catch(e){} document.getElementById('tour').style.display='none'; }
+function coachNext(){ if(ci<COACH.length-1){ ci++; coachRender(); } else coachEnd(); }
+function coachPrev(){ if(ci>0){ ci--; coachRender(); } }
+function coachEnd(){ try{localStorage.setItem('depop_onboarded','1');}catch(e){} document.getElementById('coach').style.display='none'; }
 
 /* segmented controls */
 document.querySelectorAll('#tx_base button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tx_base button').forEach(x=>x.classList.remove('on'));b.classList.add('on');DB.settings.taxBase=b.dataset.base;persist();render();});
