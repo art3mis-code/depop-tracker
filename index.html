@@ -1131,22 +1131,24 @@ function tourStep(){
     document.getElementById('tourNext').textContent=ti===TOUR.length-1?'Done':'Next';
     const spot=document.getElementById('tourSpot'), tip=document.getElementById('tourTip');
     const t=s.target?document.querySelector(s.target):null;
+    const isNav=!!(s.target&&s.target.indexOf('nav')===0);
     const el=t?(t.closest('.card')||t):null;
     if(!el){
       spot.style.display='none';
-      tip.style.left='50%'; tip.style.top='42%'; tip.style.transform='translate(-50%,-50%)';
+      tip.style.transform='translate(-50%,-50%)'; tip.style.left='50%'; tip.style.top='42%';
       return;
     }
-    el.scrollIntoView({block:'center',behavior:'auto'});
+    el.scrollIntoView({block: isNav?'center':'start', behavior:'auto'});
+    if(!isNav) window.scrollBy(0,-96); // clear the sticky header so the highlighted part shows
     setTimeout(()=>{
       const r=el.getBoundingClientRect(), pad=8;
       spot.style.display='block';
       spot.style.left=(r.left-pad)+'px'; spot.style.top=(r.top-pad)+'px';
       spot.style.width=(r.width+pad*2)+'px'; spot.style.height=(r.height+pad*2)+'px';
       tip.style.transform='none';
-      const tipH=185;
-      const top=(window.innerHeight-r.bottom > tipH+24) ? (r.bottom+14) : Math.max(12, r.top-tipH-14);
-      const left=Math.min(Math.max(12, r.left), Math.max(12, window.innerWidth-312));
+      const tw=tip.offsetWidth||300, th=tip.offsetHeight||185;
+      const left=Math.min(Math.max(10,(window.innerWidth-tw)/2), Math.max(10, window.innerWidth-tw-10));
+      const top=isNav ? Math.max(14, r.top - th - 16) : (window.innerHeight - th - 92);
       tip.style.left=left+'px'; tip.style.top=top+'px';
     }, 180);
   }, 70);
