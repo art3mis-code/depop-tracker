@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#eaf4fb" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Depop Tracker" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<title>Depop Tracker</title>
+<style>
+  :root{
+    --bg:#f5fbff; --card:#ffffff; --ink:#23323d; --muted:#6f8595;
+    --blue:#cfe8fb; --blue-deep:#7fc0ef; --green:#d7f0dd; --green-deep:#7fcf9b;
+    --line:#e3eef5; --shadow:0 1px 3px rgba(40,80,110,.08),0 6px 18px rgba(40,80,110,.06);
+    --radius:16px; --pos:#2f9e6b; --neg:#d9785f;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.45;
+    padding:0 0 96px; -webkit-font-smoothing:antialiased;
+  }
+  header{
+    position:sticky; top:0; z-index:5;
+    background:linear-gradient(180deg,#eaf4fb,#f5fbff);
+    padding:calc(env(safe-area-inset-top) + 16px) 18px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  h1{font-size:20px;margin:0;letter-spacing:.2px}
+  h1 span{color:var(--blue-deep)}
+  .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  main{padding:16px 14px;max-width:560px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+  .card h2{font-size:14px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:0 0 4px}
+  input,select{
+    width:100%;font-size:16px;padding:11px 12px;border:1px solid var(--line);
+    border-radius:11px;background:#fbfdff;color:var(--ink);outline:none;font-family:inherit
+  }
+  input:focus,select:focus{border-color:var(--blue-deep);background:#fff}
+  .row{display:flex;gap:10px}
+  .row>div{flex:1}
+  .mt{margin-top:10px}
+  button{font-family:inherit;cursor:pointer;border:none;font-size:15px}
+  .btn{
+    width:100%;padding:13px;border-radius:12px;font-weight:600;
+    background:var(--blue-deep);color:#fff;box-shadow:var(--shadow);margin-top:14px
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.green{background:var(--green-deep)}
+  .btn.ghost{background:#eef6fc;color:var(--blue-deep);box-shadow:none;border:1px solid var(--line)}
+  .btn.sm{padding:9px 12px;width:auto;font-size:13.5px;margin-top:0}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:linear-gradient(160deg,#f3f9ff,#eef7ff);border:1px solid var(--line);border-radius:13px;padding:13px}
+  .stat.g{background:linear-gradient(160deg,#f1faf3,#eafaef)}
+  .stat .k{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .stat .v{font-size:21px;font-weight:700;margin-top:3px}
+  .pos{color:var(--pos)} .neg{color:var(--neg)}
+  .list{margin-top:6px}
+  .item{display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:none}
+  .item .nm{font-weight:600;font-size:14.5px}
+  .item .meta{font-size:12px;color:var(--muted);margin-top:1px}
+  .item .amt{margin-left:auto;text-align:right;font-weight:700;font-size:14.5px;white-space:nowrap}
+  .item .amt small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .del{background:none;color:var(--neg);font-size:18px;padding:2px 6px;opacity:.55}
+  .edit{background:none;color:var(--blue-deep);font-size:15px;padding:2px 6px;opacity:.75}
+  .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:18px 0}
+  .pill{display:inline-block;background:var(--blue);color:#2b6da0;font-size:11px;font-weight:600;padding:2px 9px;border-radius:99px}
+  .pill.g{background:var(--green);color:#2c7e54}
+  nav{
+    position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;
+    border-top:1px solid var(--line);padding:6px 6px calc(env(safe-area-inset-bottom) + 6px);z-index:6
+  }
+  nav button{flex:1;background:none;padding:8px 4px;color:var(--muted);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:12px}
+  nav button .ic{font-size:19px}
+  nav button.active{color:var(--blue-deep);background:#f1f8fe}
+  .hide{display:none}
+  .note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .cloud-dot{display:inline-block;width:8px;height:8px;border-radius:99px;background:#c9d6df;margin-right:6px;vertical-align:middle}
+  .cloud-dot.on{background:var(--green-deep)}
+  textarea{width:100%;font-size:13px;padding:11px;border:1px solid var(--line);border-radius:11px;background:#fbfdff;font-family:ui-monospace,monospace;resize:vertical}
+  .seg{display:flex;background:#eef6fc;border-radius:11px;padding:3px;margin-bottom:12px}
+  .seg button{flex:1;padding:8px;border-radius:9px;background:none;color:var(--muted);font-weight:600;font-size:13px}
+  .seg button.on{background:#fff;color:var(--blue-deep);box-shadow:var(--shadow)}
+  .bigstat{text-align:center;padding:6px 0 2px}
+  .bigstat .v{font-size:32px;font-weight:800}
+  .bigstat .k{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .ob{position:fixed;inset:0;background:rgba(35,50,61,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:22px}
+  .ob-card{background:#fff;border-radius:20px;max-width:380px;width:100%;padding:26px 22px;box-shadow:var(--shadow);text-align:center}
+  .ob-emoji{font-size:42px;line-height:1}
+  .ob-card h3{margin:12px 0 6px;font-size:19px}
+  .ob-card p{color:var(--muted);font-size:14.5px;line-height:1.55;margin:0}
+  .ob-dots{display:flex;gap:6px;justify-content:center;margin:18px 0 6px}
+  .ob-dot{width:7px;height:7px;border-radius:99px;background:var(--line)}
+  .ob-dot.on{background:var(--blue-deep)}
+  .ob-row{display:flex;gap:10px;margin-top:8px}
+  .ob-row .btn{margin-top:0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Depop <span>Tracker</span></h1>
+  <div class="sub"><span id="cloudDot" class="cloud-dot"></span><span id="cloudLabel">Saved on this device</span></div>
+  <div class="sub" id="hype" style="margin-top:3px;color:var(--green-deep);font-weight:600"></div>
+</header>
+
+<main>
+  <!-- ============ SALES ============ -->
+  <section id="tab-sales">
+    <div class="card">
+      <h2>⭐ Top Seller tracker</h2>
+      <div class="note">Meet all 4 goals 3 months in a row to become a Depop Top Seller.</div>
+      <div id="tsStreak" style="display:flex;align-items:center;gap:6px;margin:14px 0 4px"></div>
+      <div id="tsGoals" style="margin-top:10px"></div>
+      <div class="note mt">Update these from your Depop "My Depop" page (Sales fills itself in):</div>
+      <div class="row mt">
+        <div><label>Listings</label><input id="ts_listings" type="number" inputmode="numeric" placeholder="0" oninput="saveTS()" /></div>
+        <div><label>Reviews ★</label><input id="ts_reviews" type="number" inputmode="decimal" placeholder="0" oninput="saveTS()" /></div>
+        <div><label>Issues %</label><input id="ts_issues" type="number" inputmode="decimal" placeholder="0" oninput="saveTS()" /></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>At a glance</h2>
+      <div class="stat-grid">
+        <div class="stat g"><div class="k">Yours to keep</div><div class="v pos" id="db_keep">$0</div></div>
+        <div class="stat"><div class="k">Best month</div><div class="v" id="db_best" style="font-size:17px">—</div></div>
+        <div class="stat"><div class="k">Fees paid</div><div class="v neg" id="db_fees">$0</div></div>
+        <div class="stat g"><div class="k">Cash in stock</div><div class="v" id="db_stock">$0</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Business KPIs</h2>
+      <div class="stat-grid">
+        <div class="stat"><div class="k">Profit margin</div><div class="v" id="kpi_margin">—</div></div>
+        <div class="stat"><div class="k">Avg profit / sale</div><div class="v" id="kpi_avg">$0</div></div>
+        <div class="stat g"><div class="k">Sell-through</div><div class="v" id="kpi_sell">—</div></div>
+        <div class="stat"><div class="k">Units sold</div><div class="v" id="kpi_units">0</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Monthly revenue goal</h2>
+      <div class="note" id="goal_label">Set a target in Settings.</div>
+      <div style="height:10px;background:var(--line);border-radius:99px;margin:8px 0;overflow:hidden"><div id="rev_bar" style="height:100%;width:0;background:var(--green-deep);transition:width .4s"></div></div>
+      <div id="revTrend" style="display:flex;align-items:flex-end;gap:5px;margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h2>Top earners</h2>
+      <div class="list" id="topEarners"></div>
+    </div>
+    <div class="card">
+      <h2>Badges</h2>
+      <div id="badgesList"></div>
+    </div>
+    <div class="card">
+      <h2>Add a sale</h2>
+      <div class="row">
+        <div><label>Item</label><input id="s_item" placeholder="e.g. vintage tee" /></div>
+        <div style="max-width:120px"><label>Date</label><input id="s_date" type="date" /></div>
+      </div>
+      <div class="row mt">
+        <div><label>Sold for ($)</label><input id="s_price" type="number" inputmode="decimal" placeholder="0.00" /></div>
+        <div><label>You paid ($)</label><input id="s_cost" type="number" inputmode="decimal" placeholder="0.00" /></div>
+      </div>
+      <div class="row mt">
+        <div><label>Fees ($)</label><input id="s_fee" type="number" inputmode="decimal" placeholder="0.00" /></div>
+        <div><label>Shipping you paid ($)</label><input id="s_ship" type="number" inputmode="decimal" placeholder="0.00" /></div>
+      </div>
+      <label class="mt" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="s_refunded" style="width:auto" onchange="salePreview()" /> This sale was refunded / returned</label>
+      <button class="btn green" id="saveSaleBtn" onclick="addSale()">Save sale</button>
+      <button class="btn ghost hide" id="cancelEditBtn" onclick="cancelEdit()">Cancel edit</button>
+      <div class="note" id="s_preview"></div>
+    </div>
+
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat g"><div class="k">Total profit</div><div class="v pos" id="st_profit">$0</div></div>
+        <div class="stat"><div class="k">Revenue</div><div class="v" id="st_rev">$0</div></div>
+        <div class="stat"><div class="k">Sales</div><div class="v" id="st_count">0</div></div>
+        <div class="stat g"><div class="k">Set aside for tax</div><div class="v" id="st_tax">$0</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Recent sales</h2>
+      <div class="list" id="salesList"></div>
+    </div>
+  </section>
+
+  <!-- ============ STOCK / INVENTORY ============ -->
+  <section id="tab-stock" class="hide">
+    <div class="card">
+      <h2>Add to stock</h2>
+      <div class="row">
+        <div><label>Item</label><input id="i_item" placeholder="e.g. denim jacket" /></div>
+        <div style="max-width:120px"><label>You paid ($)</label><input id="i_paid" type="number" inputmode="decimal" placeholder="0.00" /></div>
+      </div>
+      <button class="btn" onclick="addInventory()">Add item</button>
+      <div class="note">Things you've bought to resell but haven't sold yet. When one sells, tap "Sold" and it jumps into your sales with the cost already filled in.</div>
+    </div>
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat"><div class="k">Items in stock</div><div class="v" id="iv_count">0</div></div>
+        <div class="stat g"><div class="k">Cash tied up</div><div class="v" id="iv_cash">$0</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Pricing helper</h2>
+      <div class="row">
+        <div><label>You paid ($)</label><input id="p_cost" type="number" inputmode="decimal" placeholder="0.00" oninput="priceHelp()" /></div>
+        <div><label>Fees ($)</label><input id="p_fee" type="number" inputmode="decimal" placeholder="0.00" oninput="priceHelp()" /></div>
+        <div><label>Profit you want ($)</label><input id="p_target" type="number" inputmode="decimal" placeholder="0.00" oninput="priceHelp()" /></div>
+      </div>
+      <div class="note" id="p_out">List it for —</div>
+    </div>
+    <div class="card">
+      <h2>Your stock</h2>
+      <div class="list" id="invList"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAXES ============ -->
+  <section id="tab-tax" class="hide">
+    <div class="card">
+      <label>Tax year</label>
+      <select id="tx_year" onchange="render()"></select>
+      <div class="bigstat" style="margin-top:12px">
+        <div class="k">Set aside this much for taxes</div>
+        <div class="v pos" id="tx_total">$0</div>
+      </div>
+      <div class="note" id="tx_explain"></div>
+    </div>
+    <div class="card">
+      <h2>How it's figured</h2>
+      <label>Set aside this % of profit</label>
+      <input id="tx_rate" type="number" inputmode="decimal" placeholder="25" />
+      <div class="seg mt" id="tx_base">
+        <button data-base="profit" class="on">% of profit</button>
+        <button data-base="revenue">% of sale price</button>
+      </div>
+      <button class="btn ghost" onclick="saveTaxSettings()">Update</button>
+      <div class="note">Profit means after what you paid for the item, fees, and shipping. This is an estimate to help you save — not tax advice. A tax pro can tell you your exact rate.</div>
+    </div>
+    <div class="card">
+      <h2>Quarterly taxes</h2>
+      <div class="note">Self-employed taxes are paid 4x a year. Here's this quarter so far and when it's due.</div>
+      <div class="stat-grid" style="margin-top:10px">
+        <div class="stat g"><div class="k">Set aside this quarter</div><div class="v pos" id="q_amt">$0</div></div>
+        <div class="stat"><div class="k">Due</div><div class="v" id="q_due" style="font-size:15px">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Profit &amp; Loss</h2>
+      <div class="list" id="pnlList"></div>
+    </div>
+    <div class="card">
+      <h2>1099-K tracker</h2>
+      <div class="note">When your gross sales pass the reporting line, Depop/PayPal report you to the IRS. Set your threshold in Settings — thresholds change yearly, so verify on irs.gov.</div>
+      <div class="stat-grid" style="margin-top:10px">
+        <div class="stat"><div class="k">Gross sales (this year)</div><div class="v" id="k_gross">$0</div></div>
+        <div class="stat g"><div class="k">Of threshold</div><div class="v" id="k_pct" style="font-size:16px">—</div></div>
+      </div>
+      <div style="height:8px;background:var(--line);border-radius:99px;margin-top:10px;overflow:hidden"><div id="k_bar" style="height:100%;width:0;background:var(--blue-deep);transition:width .4s"></div></div>
+    </div>
+    <div class="card">
+      <h2>Year-end tax pack</h2>
+      <div class="note">One file with the year's totals to hand an accountant. Uses the year picked above.</div>
+      <button class="btn ghost" onclick="exportTaxPack()">Download tax pack (CSV)</button>
+    </div>
+    <div class="card">
+      <h2>By month</h2>
+      <div class="list" id="taxMonths"></div>
+    </div>
+  </section>
+
+  <!-- ============ BUDGET ============ -->
+  <section id="tab-budget" class="hide">
+    <div class="card">
+      <div class="bigstat">
+        <div class="k">Current balance</div>
+        <div class="v" id="bg_balance">$0</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Add to budget</h2>
+      <div class="seg" id="bg_type">
+        <button data-type="expense" class="on">Money out</button>
+        <button data-type="income">Money in</button>
+      </div>
+      <div class="row">
+        <div><label>What for</label><input id="b_note" placeholder="e.g. shipping supplies" /></div>
+        <div style="max-width:120px"><label>Amount ($)</label><input id="b_amt" type="number" inputmode="decimal" placeholder="0.00" /></div>
+      </div>
+      <label class="mt">Category</label>
+      <select id="b_cat">
+        <option>Cost of goods (inventory)</option>
+        <option>Shipping &amp; postage</option>
+        <option>Supplies</option>
+        <option>Fees &amp; commissions</option>
+        <option>Advertising</option>
+        <option>Travel / mileage</option>
+        <option>Office / software</option>
+        <option>Payout to me</option>
+        <option>Other</option>
+      </select>
+      <button class="btn" onclick="addBudget()">Add entry</button>
+    </div>
+    <div class="card">
+      <h2>This month</h2>
+      <div class="stat-grid">
+        <div class="stat g"><div class="k">In</div><div class="v pos" id="bg_in">$0</div></div>
+        <div class="stat"><div class="k">Out</div><div class="v neg" id="bg_out">$0</div></div>
+      </div>
+      <div class="list mt" id="bgCats"></div>
+    </div>
+    <div class="card">
+      <h2>Recurring bills</h2>
+      <div class="row">
+        <div><label>Bill</label><input id="bill_name" placeholder="e.g. rent" /></div>
+        <div style="max-width:120px"><label>Amount ($)</label><input id="bill_amt" type="number" inputmode="decimal" placeholder="0.00" /></div>
+      </div>
+      <button class="btn ghost" onclick="addBill()">Add bill</button>
+      <div class="note">Total / month: <b id="billsTotal">$0</b>. Tap "Log" when you pay one to drop it into this month.</div>
+      <div class="list" id="billsList"></div>
+    </div>
+    <div class="card">
+      <h2>Savings goals</h2>
+      <div class="row">
+        <div><label>Goal</label><input id="goal_name" placeholder="e.g. new camera" /></div>
+        <div style="max-width:120px"><label>Target ($)</label><input id="goal_target" type="number" inputmode="decimal" placeholder="0" /></div>
+      </div>
+      <button class="btn ghost" onclick="addGoal()">Add goal</button>
+      <div class="list" id="goalsList"></div>
+    </div>
+    <div class="card">
+      <h2>Import bank transactions</h2>
+      <div class="note">Download a CSV from your bank, then pick it here. Each row gets added as money in or out.</div>
+      <input id="importBank" type="file" accept=".csv,text/csv" onchange="importBankCSV(event)" />
+    </div>
+    <div class="card">
+      <h2>Entries</h2>
+      <div class="list" id="budgetList"></div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="tab-set" class="hide">
+    <div class="card">
+      <h2>Cloud sync</h2>
+      <div class="note" id="cloudStatus"></div>
+      <!-- connect Supabase (one-time; hidden once baked in at deploy) -->
+      <div id="cloudConfig" class="hide">
+        <label class="mt">Supabase project URL</label>
+        <input id="sb_url" placeholder="https://xxxx.supabase.co" />
+        <label class="mt">Supabase anon (public) key</label>
+        <input id="sb_key" placeholder="eyJhbGci..." />
+        <button class="btn ghost" onclick="saveCloudCfg()">Save connection</button>
+        <div class="note">One-time. The step-by-step is in the setup file I sent you.</div>
+      </div>
+      <!-- log in -->
+      <div id="cloudLogin" class="hide">
+        <label class="mt">Your email</label>
+        <input id="auth_email" type="email" inputmode="email" autocomplete="username" placeholder="you@email.com" />
+        <label class="mt">Password</label>
+        <input id="auth_pass" type="password" autocomplete="current-password" placeholder="your password" />
+        <button class="btn green" onclick="doLogin()">Log in</button>
+        <button class="btn ghost" onclick="doSignup()">First time here? Create account</button>
+        <div class="note">Pick a password your phone can save. Works on every device — no email link to chase.</div>
+      </div>
+      <!-- logged in -->
+      <div id="cloudReady" class="hide">
+        <button class="btn ghost" onclick="pullCloud()">Pull latest from cloud</button>
+        <button class="btn ghost" onclick="logoutCloud()">Log out</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Backup</h2>
+      <button class="btn ghost" onclick="exportData()">Download a backup file</button>
+      <button class="btn ghost" onclick="exportSalesCSV()">Sales as spreadsheet (CSV)</button>
+      <button class="btn ghost" onclick="exportBudgetCSV()">Budget as spreadsheet (CSV)</button>
+      <label class="mt">Restore from a backup file</label>
+      <input id="importFile" type="file" accept="application/json" onchange="importData(event)" />
+    </div>
+    <div class="card">
+      <h2>Time machine</h2>
+      <div class="note">Once a day the app quietly saves a full snapshot to the cloud — automatically, nothing for you to do. The last two weeks are kept. If anything ever looks wrong, roll back to an earlier day.</div>
+      <button class="btn ghost" onclick="loadBackups()">Show my saved days</button>
+      <div class="list" id="backupList"></div>
+    </div>
+    <div class="card">
+      <h2>Defaults</h2>
+      <label>Default fee per sale ($) — optional, fills in automatically</label>
+      <input id="set_fee" type="number" inputmode="decimal" placeholder="0.00" />
+      <label class="mt">Starting account balance ($)</label>
+      <input id="set_balance" type="number" inputmode="decimal" placeholder="0.00" />
+      <label class="mt" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="set_sound" style="width:auto" /> Cha-ching sound when you log a sale</label>
+      <label class="mt">Monthly revenue goal ($)</label>
+      <input id="set_goal" type="number" inputmode="decimal" placeholder="0.00" />
+      <label class="mt">1099-K threshold ($) — verify yours on irs.gov</label>
+      <input id="set_k1099" type="number" inputmode="decimal" placeholder="5000" />
+      <button class="btn ghost" onclick="saveDefaults()">Save</button>
+      <div class="note">Depop's fees change now and then, so each sale's fee stays editable. Set a default here if most of your sales charge the same.</div>
+    </div>
+    <div class="card">
+      <button class="btn ghost" onclick="replayTutorial()">Show the tutorial again</button>
+    </div>
+  </section>
+</main>
+
+<div id="onboard" class="ob" style="display:none">
+  <div class="ob-card">
+    <div class="ob-emoji" id="ob_emoji">👋</div>
+    <h3 id="ob_title"></h3>
+    <p id="ob_body"></p>
+    <div class="ob-dots" id="ob_dots"></div>
+    <div class="ob-row">
+      <button class="btn ghost" id="ob_back" onclick="obPrev()">Back</button>
+      <button class="btn" id="ob_next" onclick="obNext()">Next</button>
+    </div>
+    <button class="btn ghost" style="margin-top:8px" onclick="obDone()">Skip</button>
+  </div>
+</div>
+
+<nav>
+  <button data-tab="sales" class="active" onclick="go('sales')"><span class="ic">💵</span>Sales</button>
+  <button data-tab="stock" onclick="go('stock')"><span class="ic">📦</span>Stock</button>
+  <button data-tab="tax" onclick="go('tax')"><span class="ic">🧾</span>Taxes</button>
+  <button data-tab="budget" onclick="go('budget')"><span class="ic">📊</span>Budget</button>
+  <button data-tab="set" onclick="go('set')"><span class="ic">⚙️</span>Settings</button>
+</nav>
+
+<script>
+/* ---------- state ---------- */
+const KEY = 'depop_tracker_v1';
+let DB = load();
+function blank(){return {sales:[],budget:[],inventory:[],bills:[],goals:[],badges:[],topseller:{},settings:{taxRate:25,taxBase:'profit',defaultFee:'',startBalance:0,soundOn:true,monthlyGoal:0,k1099Threshold:5000},cloudCfg:null,updated:0}}
+function load(){ try{const r=localStorage.getItem(KEY);return r?Object.assign(blank(),JSON.parse(r)):blank()}catch(e){return blank()} }
+function persist(){ DB.updated=Date.now(); localStorage.setItem(KEY,JSON.stringify(DB)); if(SB&&USER) pushCloud(); }
+const money=n=>'$'+(Math.round((+n||0)*100)/100).toLocaleString('en-US',{minimumFractionDigits:(n%1?2:0),maximumFractionDigits:2});
+const monthKey=d=>(d||new Date().toISOString().slice(0,10)).slice(0,7);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+
+/* ---------- sale math ---------- */
+function profitOf(s){ return (+s.price||0)-(+s.cost||0)-(+s.fee||0)-(+s.ship||0); }
+function taxOf(s){
+  const r=(+DB.settings.taxRate||0)/100;
+  return Math.max(0, (DB.settings.taxBase==='revenue'? (+s.price||0) : profitOf(s)) * r);
+}
+
+/* ---------- tabs ---------- */
+function go(t){
+  ['sales','stock','tax','budget','set'].forEach(x=>{
+    document.getElementById('tab-'+x).classList.toggle('hide',x!==t);
+  });
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  render();
+}
+
+/* ---------- sales ---------- */
+let editingSale=null;
+function addSale(){
+  const price=+document.getElementById('s_price').value;
+  if(!price){ document.getElementById('s_price').focus(); return; }
+  const vals={
+    item:document.getElementById('s_item').value.trim()||'Sale',
+    date:document.getElementById('s_date').value||new Date().toISOString().slice(0,10),
+    price,
+    cost:+document.getElementById('s_cost').value||0,
+    fee:+document.getElementById('s_fee').value|| (+DB.settings.defaultFee||0),
+    ship:+document.getElementById('s_ship').value||0,
+    refunded:document.getElementById('s_refunded').checked
+  };
+  const celebrate = !editingSale && !vals.refunded;
+  if(editingSale){
+    const s=DB.sales.find(x=>x.id===editingSale);
+    if(s) Object.assign(s,vals);
+    cancelEdit();
+  } else {
+    DB.sales.unshift(Object.assign({id:uid()},vals));
+  }
+  persist();
+  ['s_item','s_price','s_cost','s_fee','s_ship'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s_refunded').checked=false;
+  document.getElementById('s_preview').textContent='';
+  render();
+  if(celebrate){ chaching(); confetti(); }
+}
+function editSale(id){
+  const s=DB.sales.find(x=>x.id===id); if(!s) return;
+  editingSale=id;
+  document.getElementById('s_item').value=(s.item==='Sale'?'':s.item);
+  document.getElementById('s_date').value=s.date;
+  document.getElementById('s_price').value=s.price;
+  document.getElementById('s_cost').value=s.cost||'';
+  document.getElementById('s_fee').value=s.fee||'';
+  document.getElementById('s_ship').value=s.ship||'';
+  document.getElementById('s_refunded').checked=!!s.refunded;
+  document.getElementById('saveSaleBtn').textContent='Update sale';
+  document.getElementById('cancelEditBtn').classList.remove('hide');
+  salePreview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelEdit(){
+  editingSale=null;
+  document.getElementById('saveSaleBtn').textContent='Save sale';
+  document.getElementById('cancelEditBtn').classList.add('hide');
+  ['s_item','s_price','s_cost','s_fee','s_ship'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s_refunded').checked=false;
+  document.getElementById('s_preview').textContent='';
+}
+function delSale(id){ if(editingSale===id) cancelEdit(); DB.sales=DB.sales.filter(s=>s.id!==id); persist(); render(); }
+
+function renderSales(){
+  const active=DB.sales.filter(s=>!s.refunded);
+  const rev=active.reduce((a,s)=>a+(+s.price||0),0);
+  const prof=active.reduce((a,s)=>a+profitOf(s),0);
+  const tax=active.reduce((a,s)=>a+taxOf(s),0);
+  document.getElementById('st_rev').textContent=money(rev);
+  const pe=document.getElementById('st_profit'); pe.textContent=money(prof); pe.className='v '+(prof<0?'neg':'pos');
+  document.getElementById('st_count').textContent=active.length;
+  document.getElementById('st_tax').textContent=money(tax);
+  const L=document.getElementById('salesList');
+  if(!DB.sales.length){ L.innerHTML='<div class="empty">No sales yet. Add your first one above ✦</div>'; return; }
+  L.innerHTML=DB.sales.map(s=>{
+    const p=profitOf(s);
+    const ref=s.refunded;
+    return `<div class="item"${ref?' style="opacity:.5"':''}>
+      <div><div class="nm">${esc(s.item)}${ref?' <span class="pill" style="background:#f4ddd5;color:#b5543c">refunded</span>':''}</div>
+      <div class="meta">${s.date} · sold ${money(s.price)}${s.cost?' · cost '+money(s.cost):''}${s.fee?' · fee '+money(s.fee):''}</div></div>
+      <div class="amt ${p<0?'neg':'pos'}">${money(p)}<small>profit</small></div>
+      <button class="edit" onclick="editSale('${s.id}')" title="Edit">✎</button>
+      <button class="del" onclick="delSale('${s.id}')">×</button></div>`;
+  }).join('');
+}
+function renderDashboard(){
+  const active=DB.sales.filter(s=>!s.refunded);
+  const prof=active.reduce((a,s)=>a+profitOf(s),0);
+  const tax=active.reduce((a,s)=>a+taxOf(s),0);
+  const fees=active.reduce((a,s)=>a+(+s.fee||0),0);
+  const keep=prof-tax;
+  const ke=document.getElementById('db_keep'); ke.textContent=money(keep); ke.className='v '+(keep<0?'neg':'pos');
+  document.getElementById('db_fees').textContent=money(fees);
+  document.getElementById('db_stock').textContent=money(DB.inventory.reduce((a,i)=>a+(+i.paid||0),0));
+  const m={}; active.forEach(s=>{ const k=monthKey(s.date); m[k]=(m[k]||0)+profitOf(s); });
+  const keys=Object.keys(m);
+  document.getElementById('db_best').textContent= keys.length ? prettyMonth(keys.reduce((a,b)=>m[b]>m[a]?b:a)).replace(/ \d{4}$/,'') : '—';
+}
+/* ---------- stock / inventory ---------- */
+function addInventory(){
+  const item=document.getElementById('i_item').value.trim();
+  if(!item){ document.getElementById('i_item').focus(); return; }
+  DB.inventory.unshift({id:uid(),item,paid:+document.getElementById('i_paid').value||0,date:new Date().toISOString().slice(0,10)});
+  persist();
+  document.getElementById('i_item').value=''; document.getElementById('i_paid').value='';
+  render();
+}
+function delInventory(id){ DB.inventory=DB.inventory.filter(i=>i.id!==id); persist(); render(); }
+function markSold(id){
+  const it=DB.inventory.find(i=>i.id===id); if(!it) return;
+  DB.inventory=DB.inventory.filter(i=>i.id!==id); persist();
+  cancelEdit(); go('sales');
+  document.getElementById('s_item').value=it.item;
+  document.getElementById('s_cost').value=it.paid||'';
+  document.getElementById('s_date').value=new Date().toISOString().slice(0,10);
+  salePreview();
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('s_price').focus();
+  flash('Now enter what it sold for ✦');
+}
+function daysSince(d){ return Math.max(0,Math.floor((Date.now()-new Date(d).getTime())/86400000)); }
+function renderInventory(){
+  document.getElementById('iv_count').textContent=DB.inventory.length;
+  document.getElementById('iv_cash').textContent=money(DB.inventory.reduce((a,i)=>a+(+i.paid||0),0));
+  const L=document.getElementById('invList');
+  L.innerHTML=DB.inventory.length?DB.inventory.map(i=>{
+    const age=daysSince(i.date), old=age>30;
+    return `<div class="item"><div><div class="nm">${esc(i.item)}${old?' <span class="pill" style="background:#f4ddd5;color:#b5543c">sitting '+age+'d</span>':''}</div><div class="meta">added ${i.date}${i.paid?' · paid '+money(i.paid):''} · ${age}d old</div></div><button class="btn ghost sm" onclick="markSold('${i.id}')">Sold</button><button class="del" onclick="delInventory('${i.id}')">×</button></div>`;
+  }).join(''):'<div class="empty">Nothing in stock yet. Add what you\'ve sourced above 📦</div>';
+}
+function renderTopEarners(){
+  const L=document.getElementById('topEarners'); if(!L) return;
+  const map={};
+  activeSales().forEach(s=>{ const k=(s.item||'Sale').trim().toLowerCase(); if(!map[k])map[k]={name:s.item||'Sale',profit:0,n:0}; map[k].profit+=profitOf(s); map[k].n++; });
+  const arr=Object.values(map).sort((a,b)=>b.profit-a.profit).slice(0,5);
+  L.innerHTML=arr.length?arr.map((e,i)=>`<div class="item"><div><div class="nm">${i+1}. ${esc(e.name)}</div><div class="meta">${e.n} sold</div></div><div class="amt pos">${money(e.profit)}<small>profit</small></div></div>`).join(''):'<div class="empty">Log a few sales to see your top earners.</div>';
+}
+function salePreview(){
+  const s={price:+v('s_price'),cost:+v('s_cost'),fee:+v('s_fee')||(+DB.settings.defaultFee||0),ship:+v('s_ship')};
+  if(!s.price){document.getElementById('s_preview').textContent='';return;}
+  const p=profitOf(s);
+  document.getElementById('s_preview').innerHTML=`Profit on this sale: <b class="${p<0?'neg':'pos'}">${money(p)}</b> · set aside <b>${money(taxOf(s))}</b> for tax`;
+}
+
+/* ---------- taxes ---------- */
+function taxYears(){
+  const ys=new Set(); DB.sales.forEach(s=>ys.add(monthKey(s.date).slice(0,4)));
+  return [...ys].sort().reverse();
+}
+function renderTax(){
+  const sel=document.getElementById('tx_year');
+  const years=taxYears();
+  const prev=sel.value;
+  const thisYear=String(new Date().getFullYear());
+  sel.innerHTML=['<option value="all">All time</option>'].concat(years.map(y=>`<option value="${y}">${y}</option>`)).join('');
+  let chosen=(prev==='all'||years.includes(prev))?prev:(years.includes(thisYear)?thisYear:(years[0]||'all'));
+  sel.value=chosen;
+  const inYear=s=> chosen==='all' || monthKey(s.date).slice(0,4)===chosen;
+  const sales=DB.sales.filter(s=>!s.refunded && inYear(s));
+  const tax=sales.reduce((a,s)=>a+taxOf(s),0);
+  document.getElementById('tx_total').textContent=money(tax);
+  document.getElementById('tx_rate').value=DB.settings.taxRate;
+  document.querySelectorAll('#tx_base button').forEach(b=>b.classList.toggle('on',b.dataset.base===DB.settings.taxBase));
+  const baseword=DB.settings.taxBase==='revenue'?'sale price':'profit';
+  const profit=sales.reduce((a,s)=>a+profitOf(s),0);
+  const label=chosen==='all'?'all time':chosen;
+  document.getElementById('tx_explain').innerHTML=`${DB.settings.taxRate}% of your ${baseword} · ${sales.length} sale${sales.length===1?'':'s'} in ${label} · profit ${money(profit)}`;
+  const months={};
+  sales.forEach(s=>{ const m=monthKey(s.date); months[m]=(months[m]||0)+taxOf(s); });
+  const keys=Object.keys(months).sort().reverse();
+  const L=document.getElementById('taxMonths');
+  L.innerHTML=keys.length?keys.map(m=>`<div class="item"><div><div class="nm">${prettyMonth(m)}</div></div><div class="amt pos">${money(months[m])}<small>set aside</small></div></div>`).join(''):'<div class="empty">No sales in this period.</div>';
+}
+function saveTaxSettings(){ DB.settings.taxRate=+v('tx_rate')||0; persist(); render(); }
+
+/* ---------- budget ---------- */
+function addBudget(){
+  const amt=+v('b_amt'); if(!amt){document.getElementById('b_amt').focus();return;}
+  const type=document.querySelector('#bg_type button.on').dataset.type;
+  DB.budget.unshift({id:uid(),date:new Date().toISOString().slice(0,10),type,amt,cat:v('b_cat'),note:v('b_note').trim()});
+  persist();
+  document.getElementById('b_amt').value=''; document.getElementById('b_note').value='';
+  render();
+}
+function delBudget(id){ DB.budget=DB.budget.filter(b=>b.id!==id); persist(); render(); }
+function renderBudget(){
+  const be=document.getElementById('bg_balance'); if(be) be.textContent=money(currentBalance());
+  const m=monthKey();
+  const mth=DB.budget.filter(b=>monthKey(b.date)===m);
+  const inn=mth.filter(b=>b.type==='income').reduce((a,b)=>a+b.amt,0);
+  const out=mth.filter(b=>b.type==='expense').reduce((a,b)=>a+b.amt,0);
+  document.getElementById('bg_in').textContent=money(inn);
+  document.getElementById('bg_out').textContent=money(out);
+  const cats={};
+  mth.filter(b=>b.type==='expense').forEach(b=>cats[b.cat]=(cats[b.cat]||0)+b.amt);
+  const ck=Object.keys(cats).sort((a,b)=>cats[b]-cats[a]);
+  document.getElementById('bgCats').innerHTML=ck.length?ck.map(c=>`<div class="item"><div><span class="pill">${esc(c)}</span></div><div class="amt neg">${money(cats[c])}</div></div>`).join(''):'<div class="empty">No spending logged this month.</div>';
+  const L=document.getElementById('budgetList');
+  L.innerHTML=DB.budget.length?DB.budget.map(b=>`<div class="item"><div><div class="nm">${esc(b.note||b.cat)}</div><div class="meta">${b.date} · ${esc(b.cat)}</div></div><div class="amt ${b.type==='income'?'pos':'neg'}">${b.type==='income'?'+':'−'}${money(b.amt)}</div><button class="del" onclick="delBudget('${b.id}')">×</button></div>`).join(''):'<div class="empty">Nothing yet.</div>';
+}
+
+/* ---------- settings ---------- */
+function saveDefaults(){ DB.settings.defaultFee=v('set_fee'); DB.settings.startBalance=+v('set_balance')||0; DB.settings.soundOn=document.getElementById('set_sound').checked; DB.settings.monthlyGoal=+v('set_goal')||0; DB.settings.k1099Threshold=+v('set_k1099')||5000; persist(); render(); flash('Saved'); }
+function renderSettings(){
+  document.getElementById('set_fee').value=DB.settings.defaultFee||'';
+  document.getElementById('set_balance').value=DB.settings.startBalance||'';
+  document.getElementById('set_sound').checked=DB.settings.soundOn!==false;
+  document.getElementById('set_goal').value=DB.settings.monthlyGoal||'';
+  document.getElementById('set_k1099').value=DB.settings.k1099Threshold||'';
+  const cfg=cloudCfg();
+  const configured=!!(cfg&&cfg.url&&cfg.key);
+  const authed=!!(SB&&USER);
+  document.getElementById('cloudConfig').classList.toggle('hide', configured);
+  document.getElementById('cloudLogin').classList.toggle('hide', !configured || authed);
+  document.getElementById('cloudReady').classList.toggle('hide', !authed);
+  document.getElementById('cloudStatus').innerHTML = authed
+    ? '<span class="cloud-dot on"></span>Synced as '+esc(USER.email)+' — backed up & private.'
+    : (configured ? '<span class="cloud-dot"></span>Connected. Log in to start syncing.'
+                  : '<span class="cloud-dot"></span>Off — saved on this device only.');
+  if(DB.cloudCfg && !configured){ /* keep fields editable */ }
+}
+
+/* ---------- cloud (Supabase Auth + RLS, optional) ---------- */
+// Baked in at deploy so you never paste keys — anon key is safe in client code; RLS keeps data private.
+const CLOUD_BAKED = { url:'https://kfxyakgzfppwivrblwmv.supabase.co', key:'sb_publishable_MECWQl2dCrxyxEuRJTpH5Q_3Qq-O_Zu' };
+let SB=null, USER=null;
+function cloudCfg(){ return (CLOUD_BAKED.url && CLOUD_BAKED.key) ? CLOUD_BAKED : (DB.cloudCfg||null); }
+async function loadSupabaseLib(){
+  if(window.supabase) return true;
+  try{
+    await new Promise((res,rej)=>{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';t.onload=res;t.onerror=rej;document.head.appendChild(t);});
+    return !!window.supabase;
+  }catch(e){ return false; }
+}
+async function initCloud(){
+  const cfg=cloudCfg();
+  if(!cfg||!cfg.url||!cfg.key){ renderSettings(); return; }
+  if(!(await loadSupabaseLib())){ renderSettings(); return; }
+  try{
+    SB=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    SB.auth.onAuthStateChange((_e,session)=>{ USER=session?session.user:null; updateCloudLabel(); renderSettings(); if(USER) pullCloud(true).then(autoBackup); });
+    const {data}=await SB.auth.getSession();
+    USER=data && data.session ? data.session.user : null;
+    updateCloudLabel(); renderSettings();
+    if(USER){ await pullCloud(true); await autoBackup(); }
+  }catch(e){ SB=null; renderSettings(); }
+}
+async function saveCloudCfg(){
+  const url=v('sb_url').trim().replace(/\/$/,''); const key=v('sb_key').trim();
+  if(!url||!key){ flash('Paste both the URL and the key'); return; }
+  DB.cloudCfg={url,key}; persist(); flash('Saved — now log in below'); await initCloud();
+}
+async function doLogin(){
+  if(!SB) await initCloud();
+  if(!SB){ flash('Add your Supabase connection first'); return; }
+  const email=v('auth_email').trim(), password=document.getElementById('auth_pass').value;
+  if(!email||!password){ flash('Enter your email and password'); return; }
+  try{
+    const {error}=await SB.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    document.getElementById('auth_pass').value=''; flash('Logged in ✓');
+  }catch(e){ flash('Login failed — wrong email or password. ('+(e.message||e)+')'); }
+}
+async function doSignup(){
+  if(!SB) await initCloud();
+  if(!SB){ flash('Add your Supabase connection first'); return; }
+  const email=v('auth_email').trim(), password=document.getElementById('auth_pass').value;
+  if(!email){ flash('Enter your email'); return; }
+  if((password||'').length<6){ flash('Pick a password with 6+ characters'); return; }
+  try{
+    const {error}=await SB.auth.signUp({email,password});
+    if(error) throw error;
+    document.getElementById('auth_pass').value=''; flash('Account made — you\'re in ✓');
+  }catch(e){ flash('Could not create account: '+(e.message||e)); }
+}
+async function logoutCloud(){ if(SB) try{await SB.auth.signOut()}catch(e){} USER=null; updateCloudLabel(); renderSettings(); flash('Logged out'); }
+async function pushCloud(){
+  if(!SB||!USER) return;
+  try{ await SB.from('tracker_data').upsert({user_id:USER.id,data:DB,updated_at:new Date().toISOString()}); }catch(e){}
+}
+async function pullCloud(silent){
+  if(!SB||!USER){ if(!silent)flash('Log in first'); return; }
+  try{
+    const {data,error}=await SB.from('tracker_data').select('data,updated_at').eq('user_id',USER.id).maybeSingle();
+    if(error){ if(!silent)flash('Could not reach cloud'); return; }
+    if(!data){ await pushCloud(); if(!silent)flash('Synced ✓'); return; }
+    if((data.data.updated||0) > (DB.updated||0)){
+      const cfg=DB.cloudCfg; DB=Object.assign(blank(),data.data); DB.cloudCfg=cfg;
+      localStorage.setItem(KEY,JSON.stringify(DB)); render();
+    } else { await pushCloud(); }
+    if(!silent)flash('Synced ✓');
+  }catch(e){ if(!silent)flash('Could not reach cloud'); }
+}
+function updateCloudLabel(){
+  const on=!!(SB&&USER);
+  document.getElementById('cloudDot').classList.toggle('on',on);
+  document.getElementById('cloudLabel').textContent=on?'Synced to cloud':'Saved on this device';
+}
+
+/* ---------- backup ---------- */
+function exportData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='depop-tracker-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+}
+function csvCell(v){ v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function downloadFile(name,text,type){ const b=new Blob([text],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; a.click(); }
+function exportSalesCSV(){
+  if(!DB.sales.length){ flash('No sales to export yet'); return; }
+  const rows=[['Date','Item','Sold','Cost','Fees','Shipping','Profit','Tax set aside']];
+  DB.sales.slice().sort((a,b)=>a.date<b.date?1:-1).forEach(s=>rows.push([s.date,s.item,(+s.price||0).toFixed(2),(+s.cost||0).toFixed(2),(+s.fee||0).toFixed(2),(+s.ship||0).toFixed(2),profitOf(s).toFixed(2),taxOf(s).toFixed(2)]));
+  downloadFile('depop-sales-'+new Date().toISOString().slice(0,10)+'.csv', rows.map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv');
+}
+function exportBudgetCSV(){
+  if(!DB.budget.length){ flash('No budget entries to export yet'); return; }
+  const rows=[['Date','Type','Category','Note','Amount']];
+  DB.budget.slice().sort((a,b)=>a.date<b.date?1:-1).forEach(b=>rows.push([b.date,b.type,b.cat,b.note||'',(+b.amt||0).toFixed(2)]));
+  downloadFile('depop-budget-'+new Date().toISOString().slice(0,10)+'.csv', rows.map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv');
+}
+function importData(ev){
+  const f=ev.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); const cfg=DB.cloudCfg; DB=Object.assign(blank(),d); DB.cloudCfg=cfg; persist(); render(); flash('Backup restored ✓'); }catch(e){ flash('That file could not be read'); } };
+  r.readAsText(f);
+}
+
+/* ---------- automatic daily cloud snapshots ---------- */
+async function autoBackup(){
+  if(!SB||!USER) return;
+  const hasData=(DB.sales&&DB.sales.length)||(DB.budget&&DB.budget.length);
+  if(!hasData) return;
+  try{
+    const {data:last}=await SB.from('tracker_backups').select('created_at').eq('user_id',USER.id).order('created_at',{ascending:false}).limit(1);
+    const lastTime=last&&last[0]?new Date(last[0].created_at).getTime():0;
+    if(Date.now()-lastTime > 20*3600*1000){
+      await SB.from('tracker_backups').insert({user_id:USER.id,data:DB});
+      const {data:all}=await SB.from('tracker_backups').select('id').eq('user_id',USER.id).order('created_at',{ascending:false});
+      if(all&&all.length>14){ await SB.from('tracker_backups').delete().in('id', all.slice(14).map(r=>r.id)); }
+    }
+  }catch(e){}
+}
+async function loadBackups(){
+  const L=document.getElementById('backupList');
+  if(!SB||!USER){ L.innerHTML='<div class="empty">Log in (above) to use cloud backups.</div>'; return; }
+  L.innerHTML='<div class="empty">Loading…</div>';
+  try{
+    const {data,error}=await SB.from('tracker_backups').select('id,created_at,data').eq('user_id',USER.id).order('created_at',{ascending:false});
+    if(error){ L.innerHTML='<div class="empty">Could not reach cloud.</div>'; return; }
+    if(!data||!data.length){ L.innerHTML='<div class="empty">No snapshots yet — the first one saves on its own once you have a sale or two logged.</div>'; return; }
+    window.__backups={};
+    L.innerHTML=data.map(b=>{
+      window.__backups[b.id]=b.data;
+      const d=new Date(b.created_at);
+      const n=b.data&&b.data.sales?b.data.sales.length:0;
+      return `<div class="item"><div><div class="nm">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}, ${d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div><div class="meta">${n} sale${n===1?'':'s'} saved</div></div><button class="btn ghost sm" onclick="restoreBackup('${b.id}')">Restore</button></div>`;
+    }).join('');
+  }catch(e){ L.innerHTML='<div class="empty">Could not reach cloud.</div>'; }
+}
+function restoreBackup(id){
+  const snap=window.__backups&&window.__backups[id];
+  if(!snap) return;
+  if(!confirm('Replace what you have now with this saved day? Your current data will be swapped for this snapshot.')) return;
+  const cfg=DB.cloudCfg; DB=Object.assign(blank(),snap); DB.cloudCfg=cfg; persist(); render(); flash('Rolled back ✓');
+}
+
+/* ---------- balance, bills, goals, bank csv ---------- */
+function currentBalance(){
+  let bal=+DB.settings.startBalance||0;
+  DB.budget.forEach(b=> bal += (b.type==='income'? (+b.amt||0) : -(+b.amt||0)) );
+  return bal;
+}
+function addBill(){
+  const name=v('bill_name').trim(); if(!name){ document.getElementById('bill_name').focus(); return; }
+  DB.bills.unshift({id:uid(),name,amt:+v('bill_amt')||0}); persist();
+  document.getElementById('bill_name').value=''; document.getElementById('bill_amt').value=''; render();
+}
+function delBill(id){ DB.bills=DB.bills.filter(b=>b.id!==id); persist(); render(); }
+function logBill(id){
+  const b=DB.bills.find(x=>x.id===id); if(!b) return;
+  DB.budget.unshift({id:uid(),date:new Date().toISOString().slice(0,10),type:'expense',amt:+b.amt||0,cat:'Bills',note:b.name});
+  persist(); render(); flash(b.name+' logged ✓');
+}
+function renderBills(){
+  const L=document.getElementById('billsList'); if(!L) return;
+  document.getElementById('billsTotal').textContent=money(DB.bills.reduce((a,b)=>a+(+b.amt||0),0));
+  L.innerHTML=DB.bills.length?DB.bills.map(b=>`<div class="item"><div><div class="nm">${esc(b.name)}</div><div class="meta">${money(b.amt)} / month</div></div><button class="btn ghost sm" onclick="logBill('${b.id}')">Log</button><button class="del" onclick="delBill('${b.id}')">×</button></div>`).join(''):'<div class="empty">No recurring bills yet.</div>';
+}
+function addGoal(){
+  const name=v('goal_name').trim(); const target=+v('goal_target')||0;
+  if(!name||!target){ document.getElementById('goal_name').focus(); return; }
+  DB.goals.unshift({id:uid(),name,target,saved:0}); persist();
+  document.getElementById('goal_name').value=''; document.getElementById('goal_target').value=''; render();
+}
+function delGoal(id){ DB.goals=DB.goals.filter(g=>g.id!==id); persist(); render(); }
+function addToGoal(id){
+  const g=DB.goals.find(x=>x.id===id); if(!g) return;
+  const amt=parseFloat(prompt('Add how much to "'+g.name+'"? (use a minus to subtract)',''));
+  if(isNaN(amt)) return;
+  g.saved=Math.max(0,(+g.saved||0)+amt); persist(); render();
+  if(g.target&&g.saved>=g.target){ confetti(); flash('Goal reached! 🎉'); }
+}
+function renderGoals(){
+  const L=document.getElementById('goalsList'); if(!L) return;
+  L.innerHTML=DB.goals.length?DB.goals.map(g=>{
+    const pct=g.target?Math.min(100,Math.round((g.saved/g.target)*100)):0;
+    return `<div class="item" style="display:block">
+      <div style="display:flex;align-items:center"><div class="nm">${esc(g.name)}</div><div class="amt pos" style="margin-left:auto">${money(g.saved)} / ${money(g.target)}</div>
+      <button class="btn ghost sm" style="margin:0 0 0 8px" onclick="addToGoal('${g.id}')">+</button>
+      <button class="del" onclick="delGoal('${g.id}')">×</button></div>
+      <div style="height:8px;background:var(--line);border-radius:99px;margin-top:8px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--green-deep);transition:width .4s"></div></div>
+    </div>`;
+  }).join(''):'<div class="empty">No goals yet. Set one above ✦</div>';
+}
+function parseCSVLine(line){
+  const out=[]; let cur='',q=false;
+  for(let i=0;i<line.length;i++){ const ch=line[i];
+    if(ch==='"'){ if(q&&line[i+1]==='"'){cur+='"';i++;} else q=!q; }
+    else if(ch===','&&!q){ out.push(cur); cur=''; }
+    else cur+=ch; }
+  out.push(cur); return out;
+}
+function normDate(s){ s=(s||'').trim().replace(/^"|"$/g,''); const d=new Date(s); return isNaN(d)?new Date().toISOString().slice(0,10):d.toISOString().slice(0,10); }
+function importBankCSV(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const lines=r.result.split(/\r?\n/).filter(x=>x.trim());
+      if(lines.length<2){ flash('That file looks empty'); return; }
+      const head=parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase().replace(/^"|"$/g,''));
+      const di=head.findIndex(h=>h.includes('date'));
+      const ai=head.findIndex(h=>h.includes('amount'));
+      const debiti=head.findIndex(h=>h.includes('debit')||h.includes('withdraw'));
+      const crediti=head.findIndex(h=>h.includes('credit')||h.includes('deposit'));
+      const ni=head.findIndex(h=>h.includes('desc')||h.includes('name')||h.includes('memo')||h.includes('payee')||h.includes('detail'));
+      let added=0;
+      for(let i=1;i<lines.length;i++){
+        const c=parseCSVLine(lines[i]); let amt=0;
+        if(ai>-1) amt=parseFloat((c[ai]||'').replace(/[^0-9.\-]/g,''))||0;
+        else { const d=parseFloat((c[debiti]||'').replace(/[^0-9.\-]/g,''))||0; const cr=parseFloat((c[crediti]||'').replace(/[^0-9.\-]/g,''))||0; amt=cr-d; }
+        if(!amt) continue;
+        DB.budget.unshift({id:uid(),date:di>-1?normDate(c[di]):new Date().toISOString().slice(0,10),type:amt>=0?'income':'expense',amt:Math.abs(amt),cat:'Imported',note:(ni>-1?(c[ni]||'').replace(/^"|"$/g,''):'Imported')||'Imported'});
+        added++;
+      }
+      persist(); render(); ev.target.value=''; flash(added+' transactions imported ✓');
+    }catch(e){ flash('Could not read that CSV'); }
+  };
+  r.readAsText(f);
+}
+
+/* ---------- Depop Top Seller tracker ---------- */
+const TS_GOALS={listings:50,sales:1000,reviews:4.5,issues:3};
+function tsMonth(m){ return (DB.topseller&&DB.topseller[m])||{listings:0,reviews:0,issues:0}; }
+function tsSales(m){ return DB.sales.filter(s=>!s.refunded&&monthKey(s.date)===m).reduce((a,s)=>a+(+s.price||0),0); }
+function tsPass(m){ const d=tsMonth(m); return tsSales(m)>=TS_GOALS.sales && (+d.listings||0)>=TS_GOALS.listings && (+d.reviews||0)>=TS_GOALS.reviews && (+d.issues||0)<TS_GOALS.issues; }
+function saveTS(){ const m=monthKey(); if(!DB.topseller)DB.topseller={}; DB.topseller[m]={listings:+v('ts_listings')||0,reviews:+v('ts_reviews')||0,issues:+v('ts_issues')||0}; persist(); renderTopSeller(); }
+function monShort(m){ const p=m.split('-'); return new Date(+p[0],+p[1]-1,1).toLocaleDateString('en-US',{month:'short'}); }
+function renderTopSeller(){
+  const G=document.getElementById('tsGoals'); if(!G) return;
+  const m=monthKey(), d=tsMonth(m), sales=tsSales(m);
+  ['ts_listings','ts_reviews','ts_issues'].forEach((id,i)=>{ const el=document.getElementById(id); if(el&&document.activeElement!==el){ const val=[d.listings,d.reviews,d.issues][i]; el.value=val||''; } });
+  const rows=[
+    ['Listings',d.listings||0,TS_GOALS.listings,(d.listings||0)>=TS_GOALS.listings,x=>x],
+    ['Sales',sales,TS_GOALS.sales,sales>=TS_GOALS.sales,x=>money(x)],
+    ['Reviews ★',d.reviews||0,TS_GOALS.reviews,(d.reviews||0)>=TS_GOALS.reviews,x=>x],
+    ['Order issues',d.issues||0,TS_GOALS.issues,(d.issues||0)<TS_GOALS.issues,x=>x+'%']
+  ];
+  G.innerHTML=rows.map(r=>{
+    const label=r[0],val=r[1],goal=r[2],ok=r[3],fmt=r[4];
+    const pct=label==='Order issues'?(ok?100:Math.min(100,Math.round(val/goal*100))):Math.min(100,Math.round(val/goal*100));
+    const goalText=label==='Order issues'?('under '+goal+'%'):fmt(goal);
+    return `<div style="margin-bottom:12px"><div style="display:flex;align-items:center"><div class="nm">${label}</div><span class="pill ${ok?'g':''}" style="margin-left:auto;${ok?'':'background:#f4ddd5;color:#b5543c'}">${ok?'Doing great':'Needs work'}</span></div>
+    <div class="meta">${fmt(val)} · goal ${goalText}</div>
+    <div style="height:7px;background:var(--line);border-radius:99px;margin-top:5px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${ok?'var(--green-deep)':'var(--blue-deep)'}"></div></div></div>`;
+  }).join('');
+  const now=new Date(), wins=[];
+  for(let i=0;i<3;i++){ wins.push(new Date(now.getFullYear(),now.getMonth()+i,1).toISOString().slice(0,7)); }
+  let streak=0; for(let i=0;i<6;i++){ const mm=new Date(now.getFullYear(),now.getMonth()-i,1).toISOString().slice(0,7); if(tsPass(mm))streak++; else break; }
+  const S=document.getElementById('tsStreak');
+  S.innerHTML=wins.map((mm,i)=>{ const done=tsPass(mm); return `<div style="flex:1;text-align:center"><div style="width:42px;height:42px;margin:0 auto;border-radius:99px;border:2px solid ${done?'var(--green-deep)':'var(--line)'};display:flex;align-items:center;justify-content:center;font-weight:700;color:${done?'var(--green-deep)':'var(--muted)'}">${done?'✓':i+1}</div><div style="font-size:11px;color:var(--muted);margin-top:4px">${monShort(mm)}</div></div>`; }).join('')
+    + (streak>=3?'<div class="pill g" style="margin-left:8px">Top Seller! 👑</div>':'');
+}
+
+/* ---------- CEO reports: quarterly, P&L, 1099-K, KPIs, goal, pricing, tax pack ---------- */
+function curYear(){ return String(new Date().getFullYear()); }
+function activeSales(){ return DB.sales.filter(s=>!s.refunded); }
+function renderQuarterly(){
+  const el=document.getElementById('q_amt'); if(!el) return;
+  const now=new Date(), q=Math.floor(now.getMonth()/3), y=now.getFullYear();
+  const qStart=new Date(y,q*3,1), qEnd=new Date(y,q*3+3,1);
+  const amt=activeSales().filter(s=>{const d=new Date(s.date);return d>=qStart&&d<qEnd;}).reduce((a,s)=>a+taxOf(s),0);
+  el.textContent=money(amt);
+  document.getElementById('q_due').textContent=['April 15','June 15','September 15','January 15'][q];
+}
+function pnlFor(y){
+  const sales=activeSales().filter(s=> y==='all'||monthKey(s.date).slice(0,4)===y);
+  const inYearB=b=> y==='all'||monthKey(b.date).slice(0,4)===y;
+  const revenue=sales.reduce((a,s)=>a+(+s.price||0),0);
+  const cogs=sales.reduce((a,s)=>a+(+s.cost||0),0);
+  const fees=sales.reduce((a,s)=>a+(+s.fee||0),0);
+  const ship=sales.reduce((a,s)=>a+(+s.ship||0),0);
+  const otherExp=DB.budget.filter(b=>b.type==='expense'&&inYearB(b)).reduce((a,b)=>a+(+b.amt||0),0);
+  const taxSet=sales.reduce((a,s)=>a+taxOf(s),0);
+  return {revenue,cogs,fees,ship,otherExp,net:revenue-cogs-fees-ship-otherExp,taxSet,units:sales.length};
+}
+function renderPnL(){
+  const L=document.getElementById('pnlList'); if(!L) return;
+  const sel=document.getElementById('tx_year');
+  const p=pnlFor(sel&&sel.value?sel.value:'all');
+  const rows=[['Revenue',p.revenue],['Cost of goods',-p.cogs],['Fees',-p.fees],['Shipping',-p.ship],['Other expenses',-p.otherExp],['Net profit',p.net]];
+  L.innerHTML=rows.map((r,i)=>`<div class="item"><div class="nm"${i===rows.length-1?' style="font-weight:700"':''}>${r[0]}</div><div class="amt ${r[1]<0?'neg':'pos'}"${i===rows.length-1?' style="font-weight:800"':''}>${r[1]<0?'−':''}${money(Math.abs(r[1]))}</div></div>`).join('');
+}
+function render1099(){
+  const el=document.getElementById('k_gross'); if(!el) return;
+  const gross=activeSales().filter(s=>monthKey(s.date).slice(0,4)===curYear()).reduce((a,s)=>a+(+s.price||0),0);
+  const thr=+DB.settings.k1099Threshold||5000;
+  el.textContent=money(gross);
+  const pct=thr?Math.min(100,Math.round(gross/thr*100)):0;
+  document.getElementById('k_pct').textContent=pct+'% of '+money(thr);
+  document.getElementById('k_bar').style.width=pct+'%';
+}
+function renderKPIs(){
+  const el=document.getElementById('kpi_margin'); if(!el) return;
+  const a=activeSales();
+  const rev=a.reduce((x,s)=>x+(+s.price||0),0);
+  const prof=a.reduce((x,s)=>x+profitOf(s),0);
+  el.textContent= rev? Math.round(prof/rev*100)+'%':'—';
+  document.getElementById('kpi_avg').textContent= a.length? money(prof/a.length):'$0';
+  const sold=a.length, stock=DB.inventory.length;
+  document.getElementById('kpi_sell').textContent=(sold+stock)?Math.round(sold/(sold+stock)*100)+'%':'—';
+  document.getElementById('kpi_units').textContent=sold;
+}
+function renderRevGoal(){
+  const bar=document.getElementById('rev_bar'); if(!bar) return;
+  const goal=+DB.settings.monthlyGoal||0, m=monthKey();
+  const rev=activeSales().filter(s=>monthKey(s.date)===m).reduce((a,s)=>a+(+s.price||0),0);
+  const pct=goal?Math.min(100,Math.round(rev/goal*100)):0;
+  bar.style.width=pct+'%';
+  document.getElementById('goal_label').textContent= goal? (money(rev)+' of '+money(goal)+' this month ('+pct+'%)') : 'Set a monthly target in Settings.';
+  const months=[], now=new Date();
+  for(let i=5;i>=0;i--){ months.push(new Date(now.getFullYear(),now.getMonth()-i,1).toISOString().slice(0,7)); }
+  const vals=months.map(mm=>activeSales().filter(s=>monthKey(s.date)===mm).reduce((a,s)=>a+(+s.price||0),0));
+  const max=Math.max(1,...vals);
+  document.getElementById('revTrend').innerHTML=months.map((mm,i)=>`<div style="flex:1;text-align:center"><div style="height:48px;display:flex;align-items:flex-end"><div style="width:100%;height:${Math.round(vals[i]/max*100)}%;min-height:3px;background:var(--blue-deep);border-radius:4px 4px 0 0"></div></div><div style="font-size:9px;color:var(--muted);margin-top:3px">${mm.slice(5)}</div></div>`).join('');
+}
+function priceHelp(){
+  const cost=+v('p_cost')||0, fee=+v('p_fee')||0, target=+v('p_target')||0;
+  const price=cost+fee+target, out=document.getElementById('p_out');
+  if(!price){ out.textContent='List it for —'; return; }
+  out.innerHTML='List it for <b>'+money(price)+'</b> → '+money(target)+' profit ('+Math.round(target/price*100)+'% margin)';
+}
+function exportTaxPack(){
+  const sel=document.getElementById('tx_year'); const y=sel&&sel.value?sel.value:'all';
+  const p=pnlFor(y);
+  const rows=[['Depop Tax Pack — '+(y==='all'?'all time':y)],[''],['Revenue',p.revenue.toFixed(2)],['Cost of goods',p.cogs.toFixed(2)],['Fees',p.fees.toFixed(2)],['Shipping',p.ship.toFixed(2)],['Other expenses',p.otherExp.toFixed(2)],['Net profit',p.net.toFixed(2)],['Tax set aside',p.taxSet.toFixed(2)],['Units sold',p.units]];
+  downloadFile('depop-tax-pack-'+(y==='all'?'all':y)+'.csv', rows.map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv');
+}
+
+/* ---------- whimsy: hype, sound, confetti, badges ---------- */
+const HYPE=["You're building something real ✦","Every sale counts. Look at you go.","Future you is grateful right now.","Small flips, big momentum.","Track it and stack it 💚","You're the CEO of you.","One listing closer.","Money loves attention — and you're paying it."];
+function showHype(){ const el=document.getElementById('hype'); if(el) el.textContent=HYPE[Math.floor(Math.random()*HYPE.length)]; }
+function chaching(){
+  if(DB.settings.soundOn===false) return;
+  try{ const a=new (window.AudioContext||window.webkitAudioContext)(); const now=a.currentTime;
+    [988,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(a.destination); const t=now+i*0.09;
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.22,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.25); o.start(t); o.stop(t+0.27); });
+  }catch(e){}
+}
+function confetti(){
+  const c=document.createElement('canvas'); c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:50'; document.body.appendChild(c);
+  const ctx=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+  const cols=['#7fc0ef','#7fcf9b','#cfe8fb','#d7f0dd','#ffd47f']; const P=[];
+  for(let i=0;i<90;i++) P.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*0.3,r:4+Math.random()*5,c:cols[i%cols.length],vy:3+Math.random()*4,vx:-2+Math.random()*4,rot:Math.random()*6});
+  let t=0; const iv=setInterval(()=>{ ctx.clearRect(0,0,c.width,c.height); t++;
+    P.forEach(p=>{ p.y+=p.vy; p.x+=p.vx; p.rot+=0.2; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.c; ctx.fillRect(-p.r,-p.r,p.r*2,p.r*1.4); ctx.restore(); });
+    if(t>80){ clearInterval(iv); c.remove(); }
+  },16);
+}
+const BADGES=[
+  {id:'first_sale',label:'First sale 🎉',test:d=>d.sales.filter(s=>!s.refunded).length>=1},
+  {id:'ten_sales',label:'10 sales 🔟',test:d=>d.sales.filter(s=>!s.refunded).length>=10},
+  {id:'fifty_sales',label:'50 sales 🏆',test:d=>d.sales.filter(s=>!s.refunded).length>=50},
+  {id:'hundred_profit',label:'$100 profit 💵',test:d=>d.sales.filter(s=>!s.refunded).reduce((a,s)=>a+profitOf(s),0)>=100},
+  {id:'grand_profit',label:'$1,000 profit 👑',test:d=>d.sales.filter(s=>!s.refunded).reduce((a,s)=>a+profitOf(s),0)>=1000},
+  {id:'first_stock',label:'First sourced 📦',test:d=>d.inventory.length>=1}
+];
+function renderBadges(){
+  const L=document.getElementById('badgesList'); if(!L) return;
+  if(!DB.badges) DB.badges=[];
+  let earned=false;
+  BADGES.forEach(b=>{ if(b.test(DB)&&!DB.badges.includes(b.id)){ DB.badges.push(b.id); earned=true; } });
+  if(earned){ persist(); confetti(); }
+  L.innerHTML=BADGES.map(b=>{ const got=DB.badges.includes(b.id); return `<span class="pill ${got?'g':''}" style="${got?'':'opacity:.35'};margin:3px 4px 0 0;display:inline-block">${b.label}</span>`; }).join('');
+}
+
+/* ---------- helpers ---------- */
+function v(id){return document.getElementById(id).value;}
+function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function prettyMonth(m){const[y,mo]=m.split('-');return new Date(y,mo-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});}
+let flashT;
+function flash(msg){
+  let el=document.getElementById('flash');
+  if(!el){el=document.createElement('div');el.id='flash';el.style.cssText='position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#23323d;color:#fff;padding:10px 16px;border-radius:99px;font-size:13.5px;z-index:20;box-shadow:var(--shadow);max-width:88%;text-align:center';document.body.appendChild(el);}
+  el.textContent=msg; el.style.opacity='1';
+  clearTimeout(flashT); flashT=setTimeout(()=>el.style.opacity='0',2600);
+  el.style.transition='opacity .3s';
+}
+function render(){ renderTopSeller(); renderDashboard(); renderSales(); renderKPIs(); renderRevGoal(); renderTopEarners(); renderInventory(); renderTax(); renderQuarterly(); renderPnL(); render1099(); renderBudget(); renderBills(); renderGoals(); renderBadges(); renderSettings(); }
+
+/* ---------- first-time tutorial ---------- */
+const OB=[
+ ['👋','Welcome!','Your Depop money HQ — sales, taxes, budget, and stock in one place. Saved on your phone and synced to the cloud.'],
+ ['⚙️','First, your Settings','Tap the Settings tab and set: Tax % 30, Monthly goal 1000, 1099-K 20000, and your starting balance. Hit Save. One time only.'],
+ ['💵','Log a sale','On the Sales tab: item, what it sold for, what you paid, the fee (3.3% + $0.45), and shipping. It works out your profit and tax for you. 🎉'],
+ ['📦','Track your stock','In the Stock tab, log things you bought but haven\'t sold. When one sells, tap "Sold" and it jumps into a sale.'],
+ ['⭐','Chase Top Seller','At the top of Sales, punch in your Depop listings, reviews, and issues — your sales fill in automatically. Hit all 4 goals 3 months running for the 👑.'],
+ ['💙','You\'re all set','You\'re logged in, so everything backs up across your devices. Go make that money, CEO.']
+];
+let obI=0;
+function showOnboard(force){ if(!force && localStorage.getItem('depop_onboarded')) return; obI=0; document.getElementById('onboard').style.display='flex'; obRender(); }
+function obRender(){
+  const s=OB[obI];
+  document.getElementById('ob_emoji').textContent=s[0];
+  document.getElementById('ob_title').textContent=s[1];
+  document.getElementById('ob_body').textContent=s[2];
+  document.getElementById('ob_dots').innerHTML=OB.map((_,i)=>`<div class="ob-dot ${i===obI?'on':''}"></div>`).join('');
+  document.getElementById('ob_back').style.visibility=obI===0?'hidden':'visible';
+  document.getElementById('ob_next').textContent=obI===OB.length-1?'Start':'Next';
+}
+function obNext(){ if(obI<OB.length-1){ obI++; obRender(); } else obDone(); }
+function obPrev(){ if(obI>0){ obI--; obRender(); } }
+function obDone(){ try{localStorage.setItem('depop_onboarded','1');}catch(e){} document.getElementById('onboard').style.display='none'; }
+function replayTutorial(){ showOnboard(true); }
+
+/* segmented controls */
+document.querySelectorAll('#tx_base button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tx_base button').forEach(x=>x.classList.remove('on'));b.classList.add('on');DB.settings.taxBase=b.dataset.base;persist();render();});
+document.querySelectorAll('#bg_type button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#bg_type button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
+['s_price','s_cost','s_fee','s_ship'].forEach(id=>document.getElementById(id).addEventListener('input',salePreview));
+
+/* init */
+document.getElementById('s_date').value=new Date().toISOString().slice(0,10);
+showHype(); render(); updateCloudLabel(); initCloud(); showOnboard();
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>
