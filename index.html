@@ -121,16 +121,15 @@
   <!-- ============ SALES ============ -->
   <section id="tab-sales">
     <div class="card" id="card-topseller">
-      <h2>⭐ Top Seller tracker</h2>
-      <div class="note">Meet all 4 goals 3 months in a row to become a Depop Top Seller.</div>
-      <div id="tsStreak" style="display:flex;align-items:center;gap:6px;margin:14px 0 4px"></div>
-      <div id="tsGoals" style="margin-top:10px"></div>
-      <div class="note mt">Update these from your Depop "My Depop" page (Sales fills itself in):</div>
-      <div class="row mt">
-        <div><label>Listings</label><input id="ts_listings" type="number" inputmode="numeric" placeholder="0" oninput="saveTS()" /></div>
-        <div><label>Reviews ★</label><input id="ts_reviews" type="number" inputmode="decimal" placeholder="0" oninput="saveTS()" /></div>
-        <div><label>Issues %</label><input id="ts_issues" type="number" inputmode="decimal" placeholder="0" oninput="saveTS()" /></div>
+      <h2>⭐ Top Seller — sales goal</h2>
+      <div class="note">Depop's Top Seller needs $1,000 in sales a month, 3 months running. This tracks your sales automatically — nothing to type.</div>
+      <div class="bigstat" style="margin:12px 0 2px">
+        <div class="v pos" id="ts_sales">$0</div>
+        <div class="k">of $1,000 this month</div>
       </div>
+      <div style="height:9px;background:var(--line);border-radius:99px;margin:8px 0;overflow:hidden"><div id="ts_bar" style="height:100%;width:0;background:var(--green-deep);transition:width .4s"></div></div>
+      <div id="tsStreak" style="display:flex;align-items:center;gap:6px;margin:14px 0 4px"></div>
+      <div class="note mt">Depop's other 3 goals — 50 listings, 4.5★ reviews, under 3% order issues — show on your Depop "My Depop" page. Just glance there for those (or ask me to check).</div>
     </div>
     <div class="card">
       <h2>At a glance</h2>
@@ -923,37 +922,19 @@ function importBankCSV(ev){
   r.readAsText(f);
 }
 
-/* ---------- Depop Top Seller tracker ---------- */
-const TS_GOALS={listings:50,sales:1000,reviews:4.5,issues:3};
-function tsMonth(m){ return (DB.topseller&&DB.topseller[m])||{listings:0,reviews:0,issues:0}; }
+/* ---------- Depop Top Seller (sales goal, auto) ---------- */
 function tsSales(m){ return DB.sales.filter(s=>!s.refunded&&monthKey(s.date)===m).reduce((a,s)=>a+(+s.price||0),0); }
-function tsPass(m){ const d=tsMonth(m); return tsSales(m)>=TS_GOALS.sales && (+d.listings||0)>=TS_GOALS.listings && (+d.reviews||0)>=TS_GOALS.reviews && (+d.issues||0)<TS_GOALS.issues; }
-function saveTS(){ const m=monthKey(); if(!DB.topseller)DB.topseller={}; DB.topseller[m]={listings:+v('ts_listings')||0,reviews:+v('ts_reviews')||0,issues:+v('ts_issues')||0}; persist(); renderTopSeller(); }
 function monShort(m){ const p=m.split('-'); return new Date(+p[0],+p[1]-1,1).toLocaleDateString('en-US',{month:'short'}); }
 function renderTopSeller(){
-  const G=document.getElementById('tsGoals'); if(!G) return;
-  const m=monthKey(), d=tsMonth(m), sales=tsSales(m);
-  ['ts_listings','ts_reviews','ts_issues'].forEach((id,i)=>{ const el=document.getElementById(id); if(el&&document.activeElement!==el){ const val=[d.listings,d.reviews,d.issues][i]; el.value=val||''; } });
-  const rows=[
-    ['Listings',d.listings||0,TS_GOALS.listings,(d.listings||0)>=TS_GOALS.listings,x=>x],
-    ['Sales',sales,TS_GOALS.sales,sales>=TS_GOALS.sales,x=>money(x)],
-    ['Reviews ★',d.reviews||0,TS_GOALS.reviews,(d.reviews||0)>=TS_GOALS.reviews,x=>x],
-    ['Order issues',d.issues||0,TS_GOALS.issues,(d.issues||0)<TS_GOALS.issues,x=>x+'%']
-  ];
-  G.innerHTML=rows.map(r=>{
-    const label=r[0],val=r[1],goal=r[2],ok=r[3],fmt=r[4];
-    const pct=label==='Order issues'?(ok?100:Math.min(100,Math.round(val/goal*100))):Math.min(100,Math.round(val/goal*100));
-    const goalText=label==='Order issues'?('under '+goal+'%'):fmt(goal);
-    return `<div style="margin-bottom:12px"><div style="display:flex;align-items:center"><div class="nm">${label}</div><span class="pill ${ok?'g':''}" style="margin-left:auto;${ok?'':'background:#f4ddd5;color:#b5543c'}">${ok?'Doing great':'Needs work'}</span></div>
-    <div class="meta">${fmt(val)} · goal ${goalText}</div>
-    <div style="height:7px;background:var(--line);border-radius:99px;margin-top:5px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${ok?'var(--green-deep)':'var(--blue-deep)'}"></div></div></div>`;
-  }).join('');
+  const el=document.getElementById('ts_sales'); if(!el) return;
+  const m=monthKey(), sales=tsSales(m);
+  el.textContent=money(sales);
+  document.getElementById('ts_bar').style.width=Math.min(100,Math.round(sales/1000*100))+'%';
   const now=new Date(), wins=[];
   for(let i=0;i<3;i++){ wins.push(new Date(now.getFullYear(),now.getMonth()+i,1).toISOString().slice(0,7)); }
-  let streak=0; for(let i=0;i<6;i++){ const mm=new Date(now.getFullYear(),now.getMonth()-i,1).toISOString().slice(0,7); if(tsPass(mm))streak++; else break; }
-  const S=document.getElementById('tsStreak');
-  S.innerHTML=wins.map((mm,i)=>{ const done=tsPass(mm); return `<div style="flex:1;text-align:center"><div style="width:42px;height:42px;margin:0 auto;border-radius:99px;border:2px solid ${done?'var(--green-deep)':'var(--line)'};display:flex;align-items:center;justify-content:center;font-weight:700;color:${done?'var(--green-deep)':'var(--muted)'}">${done?'✓':i+1}</div><div style="font-size:11px;color:var(--muted);margin-top:4px">${monShort(mm)}</div></div>`; }).join('')
-    + (streak>=3?'<div class="pill g" style="margin-left:8px">Top Seller! 👑</div>':'');
+  let streak=0; for(let i=0;i<6;i++){ const mm=new Date(now.getFullYear(),now.getMonth()-i,1).toISOString().slice(0,7); if(tsSales(mm)>=1000)streak++; else break; }
+  document.getElementById('tsStreak').innerHTML=wins.map((mm,i)=>{ const done=tsSales(mm)>=1000; return `<div style="flex:1;text-align:center"><div style="width:42px;height:42px;margin:0 auto;border-radius:99px;border:2px solid ${done?'var(--green-deep)':'var(--line)'};display:flex;align-items:center;justify-content:center;font-weight:700;color:${done?'var(--green-deep)':'var(--muted)'}">${done?'✓':i+1}</div><div style="font-size:11px;color:var(--muted);margin-top:4px">${monShort(mm)}</div></div>`; }).join('')
+    + (streak>=3?'<div class="pill g" style="margin-left:8px">$1k × 3! 👑</div>':'');
 }
 
 /* ---------- CEO reports: quarterly, P&L, 1099-K, KPIs, goal, pricing, tax pack ---------- */
@@ -1132,7 +1113,7 @@ const COACH=[
   {tab:'tax', body:"Set your tax %: tap the \"% of profit\" box and type 30 (covers federal + Georgia)."},
   {tab:'set', body:"In Settings: type your starting bank balance, set your Monthly goal, and 1099-K to 20000, then tap Save."},
   {tab:'sales', body:"Log a sale: fill in the item, sold price, what you paid, fee (3.3% + $0.45), and shipping. It does the math. 🎉"},
-  {tab:'sales', body:"At the top of Sales, the Top Seller tracker: type in your Depop listings, reviews, and issues. Your sales fill in. 👑"},
+  {tab:'sales', body:"At the top of Sales, your Top Seller sales goal fills in on its own — $1,000/month, 3 months running. Nothing to type. 👑"},
   {tab:'stock', body:"Stock tab: log things you bought but haven't sold yet. Tap \"Sold\" when one sells."},
   {tab:'tax', body:"Taxes tab also has: what to set aside, Profit & Loss, and your year-end tax pack."},
   {tab:'budget', body:"Budget tab: your running balance, recurring bills, and savings goals."},
