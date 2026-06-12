@@ -141,6 +141,10 @@
         <div class="stat g"><div class="k">Cash in stock</div><div class="v" id="db_stock">$0</div></div>
       </div>
     </div>
+    <div class="card" id="card-taxjar">
+      <h2>Tax jar 💸</h2>
+      <div id="jarBody"></div>
+    </div>
     <div class="card">
       <h2>Business KPIs</h2>
       <div class="stat-grid">
@@ -455,7 +459,7 @@
 /* ---------- state ---------- */
 const KEY = 'depop_tracker_v1';
 let DB = load();
-function blank(){return {sales:[],budget:[],inventory:[],bills:[],goals:[],badges:[],topseller:{},settings:{taxRate:25,taxBase:'profit',defaultFee:'',startBalance:0,soundOn:true,monthlyGoal:0,k1099Threshold:5000},cloudCfg:null,updated:0}}
+function blank(){return {sales:[],budget:[],inventory:[],bills:[],goals:[],badges:[],topseller:{},jarMoved:0,settings:{taxRate:25,taxBase:'profit',defaultFee:'',startBalance:0,soundOn:true,monthlyGoal:0,k1099Threshold:5000},cloudCfg:null,updated:0}}
 function load(){ try{const r=localStorage.getItem(KEY);return r?Object.assign(blank(),JSON.parse(r)):blank()}catch(e){return blank()} }
 function persist(){ DB.updated=Date.now(); localStorage.setItem(KEY,JSON.stringify(DB)); if(SB&&USER) pushCloud(); }
 const money=n=>'$'+(Math.round((+n||0)*100)/100).toLocaleString('en-US',{minimumFractionDigits:(n%1?2:0),maximumFractionDigits:2});
@@ -1027,6 +1031,25 @@ function exportTaxPack(){
   downloadFile('depop-tax-pack-'+(y==='all'?'all':y)+'.csv', rows.map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv');
 }
 
+/* ---------- tax jar (set-aside reminder) ---------- */
+function renderJar(){
+  const L=document.getElementById('jarBody'); if(!L) return;
+  const owed=activeSales().reduce((a,s)=>a+taxOf(s),0);
+  const moved=+DB.jarMoved||0;
+  const toMove=Math.max(0, owed-moved);
+  if(owed<=0){ L.innerHTML='<div class="note" style="margin-top:0">Log a sale and I\'ll tell you exactly how much to stash for taxes — then drop that into a Cash App jar.</div>'; return; }
+  if(toMove<0.005){
+    L.innerHTML='<div class="note" style="margin-top:0">Caught up ✓ — '+money(moved)+' set aside. Keep it in your Cash App jar until tax time.</div>'
+      +'<button class="btn ghost" onclick="emptyJar()">I paid my taxes — empty the jar</button>';
+    return;
+  }
+  L.innerHTML='<div style="font-size:15.5px;margin-bottom:5px">Move <b class="pos">'+money(toMove)+'</b> into your Cash App tax jar 💸</div>'
+    +'<div class="note" style="margin-top:0">Stashed '+money(moved)+' of '+money(owed)+' you should set aside.</div>'
+    +'<button class="btn green" onclick="stashTax()">I moved it ✓</button>';
+}
+function stashTax(){ DB.jarMoved=activeSales().reduce((a,s)=>a+taxOf(s),0); persist(); render(); confetti(); flash('Tax money stashed 💸'); }
+function emptyJar(){ DB.jarMoved=0; persist(); render(); flash('Jar emptied'); }
+
 /* ---------- whimsy: hype, sound, confetti, badges ---------- */
 const HYPE=["You're building something real ✦","Every sale counts. Look at you go.","Future you is grateful right now.","Small flips, big momentum.","Track it and stack it 💚","You're the CEO of you.","One listing closer.","Money loves attention — and you're paying it."];
 function showHype(){ const el=document.getElementById('hype'); if(el) el.textContent=HYPE[Math.floor(Math.random()*HYPE.length)]; }
@@ -1076,7 +1099,7 @@ function flash(msg){
   clearTimeout(flashT); flashT=setTimeout(()=>el.style.opacity='0',2600);
   el.style.transition='opacity .3s';
 }
-function render(){ renderTopSeller(); renderDashboard(); renderSales(); renderKPIs(); renderRevGoal(); renderTopEarners(); renderInventory(); renderTax(); renderQuarterly(); renderPnL(); render1099(); renderBudget(); renderBills(); renderGoals(); renderBadges(); renderSettings(); }
+function render(){ renderTopSeller(); renderDashboard(); renderJar(); renderSales(); renderKPIs(); renderRevGoal(); renderTopEarners(); renderInventory(); renderTax(); renderQuarterly(); renderPnL(); render1099(); renderBudget(); renderBills(); renderGoals(); renderBadges(); renderSettings(); }
 
 /* ---------- first-time tutorial ---------- */
 const OB=[
@@ -1107,7 +1130,7 @@ function replayTutorial(){ startTour(); }
 const COACH=[
   {tab:null,  body:"Welcome! 👋 I'll walk you through setup. Do each step on the screen, then tap Next."},
   {tab:'tax', body:"Set your tax %: tap the \"% of profit\" box and type 30 (covers federal + Georgia)."},
-  {tab:'set', body:"In Settings: type your starting bank balance, set Monthly goal to 1000 and 1099-K to 5000, then tap Save."},
+  {tab:'set', body:"In Settings: type your starting bank balance, set your Monthly goal, and 1099-K to 20000, then tap Save."},
   {tab:'sales', body:"Log a sale: fill in the item, sold price, what you paid, fee (3.3% + $0.45), and shipping. It does the math. 🎉"},
   {tab:'sales', body:"At the top of Sales, the Top Seller tracker: type in your Depop listings, reviews, and issues. Your sales fill in. 👑"},
   {tab:'stock', body:"Stock tab: log things you bought but haven't sold yet. Tap \"Sold\" when one sells."},
