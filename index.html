@@ -96,6 +96,21 @@
   .bigstat{text-align:center;padding:6px 0 2px}
   .bigstat .v{font-size:32px;font-weight:800}
   .bigstat .k{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .archive{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:10px 0 4px}
+  .receipt{width:176px;background:linear-gradient(180deg,#f7fbff,#e9f2fd);border:1px dashed #b6d0ec;border-radius:5px;padding:15px 15px 16px;box-shadow:0 7px 18px rgba(120,160,210,.16);font-family:var(--serif)}
+  .receipt:nth-child(3n+1){transform:rotate(-1.7deg)}
+  .receipt:nth-child(3n+2){transform:rotate(1.3deg)}
+  .receipt:nth-child(3n){transform:rotate(-.5deg)}
+  .receipt.ref{opacity:.55}
+  .r-head{text-align:center;font-size:11px;letter-spacing:3px;color:#86a3c6}
+  .r-rule{border-top:1px dashed #c4d8ef;margin:9px 0}
+  .r-item{text-align:center;font-size:17px;color:#48607a;margin-bottom:9px;line-height:1.2}
+  .r-line{display:flex;align-items:flex-end;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#7388a0;margin-top:2px}
+  .r-line .dots{flex:1;border-bottom:1px dotted #b6c8de;margin:0 5px 3px}
+  .r-total{display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#3f6ea3;font-weight:700;margin-top:3px}
+  .r-stampwrap{text-align:center;margin-top:11px}
+  .r-stamp{display:inline-block;font-size:11px;letter-spacing:1.5px;color:#7e9cc1;border:1px solid #c8daf0;border-radius:4px;padding:3px 8px;transform:rotate(-3deg)}
+  .r-date{text-align:center;font-size:9.5px;color:#a7bad0;margin-top:9px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.5px}
   .ob{position:fixed;inset:0;background:rgba(35,50,61,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:22px}
   .ob-card{background:#fff;border-radius:20px;max-width:380px;width:100%;padding:26px 22px;box-shadow:var(--shadow);text-align:center}
   .ob-emoji{font-size:42px;line-height:1}
@@ -203,8 +218,12 @@
     </div>
 
     <div class="card">
-      <h2>Recent sales</h2>
-      <div class="list" id="salesList"></div>
+      <h2>Sales Archive 🧾</h2>
+      <div class="seg" id="salesViewSeg">
+        <button data-view="list" class="on">List</button>
+        <button data-view="receipts">Receipt wall</button>
+      </div>
+      <div id="salesList"></div>
     </div>
   </section>
 
@@ -489,6 +508,7 @@ function go(t){
 
 /* ---------- sales ---------- */
 let editingSale=null;
+let salesView='list';
 function addSale(){
   const price=+document.getElementById('s_price').value;
   if(!price){ document.getElementById('s_price').focus(); return; }
@@ -552,16 +572,45 @@ function renderSales(){
   document.getElementById('st_tax').textContent=money(tax);
   const L=document.getElementById('salesList');
   if(!DB.sales.length){ L.innerHTML='<div class="empty">No sales yet. Add your first one above ✦</div>'; return; }
-  L.innerHTML=DB.sales.map(s=>{
+  if(salesView==='receipts'){
+    L.innerHTML='<div class="archive">'+DB.sales.map(receiptCard).join('')+'</div>';
+    return;
+  }
+  L.innerHTML='<div class="list">'+DB.sales.map(s=>{
     const p=profitOf(s);
     const ref=s.refunded;
     return `<div class="item"${ref?' style="opacity:.5"':''}>
-      <div><div class="nm">${esc(s.item)}${ref?' <span class="pill" style="background:#f4ddd5;color:#b5543c">refunded</span>':''}</div>
+      <div><div class="nm">${esc(s.item)}${ref?' <span class="pill" style="background:#dfe7f1;color:#7a8aa0">refunded</span>':''}</div>
       <div class="meta">${s.date} · sold ${money(s.price)}${s.cost?' · cost '+money(s.cost):''}${s.fee?' · fee '+money(s.fee):''}</div></div>
       <div class="amt ${p<0?'neg':'pos'}">${money(p)}<small>profit</small></div>
       <button class="edit" onclick="editSale('${s.id}')" title="Edit">✎</button>
       <button class="del" onclick="delSale('${s.id}')">×</button></div>`;
-  }).join('');
+  }).join('')+'</div>';
+}
+function stampFor(s){
+  if(s.refunded) return 'returned';
+  const p=profitOf(s), m=(+s.price? p/s.price : 0);
+  if(p<=0) return '✦ a learning one ✦';
+  if(m>=0.6) return '✦ great flip ✦';
+  if(m>=0.35) return '✦ good flip ✦';
+  return '✦ a tidy flip ✦';
+}
+function receiptCard(s){
+  const p=profitOf(s);
+  const line=(label,val)=>`<div class="r-line"><span>${label}</span><span class="dots"></span><span>${money(val)}</span></div>`;
+  return `<div class="receipt${s.refunded?' ref':''}">
+    <div class="r-head">DEPOP RECEIPT</div>
+    <div class="r-rule"></div>
+    <div class="r-item">${esc(s.item)}</div>
+    ${line('sold',s.price)}
+    ${s.cost?line('cost',s.cost):''}
+    ${s.fee?line('fees',s.fee):''}
+    ${s.ship?line('ship',s.ship):''}
+    <div class="r-rule"></div>
+    <div class="r-total"><span>profit</span><span>${money(p)}</span></div>
+    <div class="r-stampwrap"><span class="r-stamp">${stampFor(s)}</span></div>
+    <div class="r-date">${s.date}</div>
+  </div>`;
 }
 function renderDashboard(){
   const active=DB.sales.filter(s=>!s.refunded);
@@ -1143,6 +1192,7 @@ function coachEnd(){ try{localStorage.setItem('depop_onboarded','1');}catch(e){}
 /* segmented controls */
 document.querySelectorAll('#tx_base button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tx_base button').forEach(x=>x.classList.remove('on'));b.classList.add('on');DB.settings.taxBase=b.dataset.base;persist();render();});
 document.querySelectorAll('#bg_type button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#bg_type button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
+document.querySelectorAll('#salesViewSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#salesViewSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');salesView=b.dataset.view;renderSales();});
 ['s_price','s_cost','s_fee','s_ship'].forEach(id=>document.getElementById(id).addEventListener('input',salePreview));
 
 /* init */
