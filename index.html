@@ -111,6 +111,28 @@
   .r-stampwrap{text-align:center;margin-top:11px}
   .r-stamp{display:inline-block;font-size:11px;letter-spacing:1.5px;color:#7e9cc1;border:1px solid #c8daf0;border-radius:4px;padding:3px 8px;transform:rotate(-3deg)}
   .r-date{text-align:center;font-size:9.5px;color:#a7bad0;margin-top:9px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.5px}
+  /* paper-doll tags */
+  .tags{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;padding:10px 0 2px}
+  .tag{width:142px;background:linear-gradient(180deg,#f8fbff,#eaf3fd);border:1px solid #c4d8ef;border-radius:6px;padding:20px 12px 12px;position:relative;text-align:center;font-family:var(--serif);box-shadow:0 5px 14px rgba(120,160,210,.13)}
+  .tag::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;border:1.5px solid #b6cfea;background:#eef6fd}
+  .tag:nth-child(2n){transform:rotate(-1.4deg)} .tag:nth-child(2n+1){transform:rotate(1deg)}
+  .tag .t-name{font-size:15px;color:#4a607a;line-height:1.15}
+  .tag .t-meta{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#7e93ab;margin-top:5px}
+  .tag .t-dust{display:inline-block;margin-top:6px;font-size:9.5px;letter-spacing:1px;color:#9aa7b6;border:1px dotted #c3cfdd;border-radius:3px;padding:1px 5px}
+  .tag.dusty{opacity:.62;filter:saturate(.65)}
+  .tag-row{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .tag-row button{font-family:inherit;border:none;border-radius:7px;font-size:12px;padding:6px 10px;cursor:pointer}
+  .tag-row .t-sold{background:#dceafb;color:#3f6ea3} .tag-row .t-del{background:none;color:#9aa8b8;font-size:15px;padding:6px}
+  /* graveyard */
+  .graves{display:flex;flex-direction:column;gap:11px;padding:6px 0 2px}
+  .grave{background:linear-gradient(180deg,#eef2f7,#e3e9f1);border:1px solid #cfd8e4;border-top-left-radius:16px;border-top-right-radius:16px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;padding:12px 14px;font-family:var(--serif);position:relative}
+  .grave .g-item{font-size:16px;color:#56616f}
+  .grave .g-sub{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#8a93a0;margin-top:3px}
+  .grave .g-lesson{font-style:italic;font-size:13px;color:#6d7888;margin-top:6px}
+  .grave .g-del{position:absolute;top:8px;right:8px;background:none;border:none;color:#aab4c1;font-size:16px;cursor:pointer}
+  /* offer brain */
+  #ob_verdict{font-family:var(--serif);font-size:21px;text-align:center;margin:10px 0 4px}
+  #ob_detail{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#7388a0;text-align:center;line-height:1.7}
   .ob{position:fixed;inset:0;background:rgba(35,50,61,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:22px}
   .ob-card{background:#fff;border-radius:20px;max-width:380px;width:100%;padding:26px 22px;box-shadow:var(--shadow);text-align:center}
   .ob-emoji{font-size:42px;line-height:1}
@@ -209,6 +231,21 @@
     </div>
 
     <div class="card">
+      <h2>💬 Offer brain</h2>
+      <div class="note">Got a lowball offer? Type the numbers — I'll say accept, counter, or decline.</div>
+      <div class="row mt">
+        <div><label>Their offer ($)</label><input id="ob_offer" type="number" inputmode="decimal" placeholder="0.00" oninput="offerBrain()" /></div>
+        <div><label>You paid ($)</label><input id="ob_cost" type="number" inputmode="decimal" placeholder="0.00" oninput="offerBrain()" /></div>
+      </div>
+      <div class="row mt">
+        <div><label>Fees ($)</label><input id="ob_fee" type="number" inputmode="decimal" placeholder="0.00" oninput="offerBrain()" /></div>
+        <div><label>Shipping ($)</label><input id="ob_ship" type="number" inputmode="decimal" placeholder="0.00" oninput="offerBrain()" /></div>
+      </div>
+      <div id="ob_verdict"></div>
+      <div id="ob_detail"></div>
+    </div>
+
+    <div class="card">
       <div class="stat-grid">
         <div class="stat g"><div class="k">Total profit</div><div class="v pos" id="st_profit">$0</div></div>
         <div class="stat"><div class="k">Revenue</div><div class="v" id="st_rev">$0</div></div>
@@ -255,7 +292,19 @@
     </div>
     <div class="card">
       <h2>Your stock</h2>
-      <div class="list" id="invList"></div>
+      <div id="invList"></div>
+    </div>
+    <div class="card">
+      <h2>🪦 The graveyard</h2>
+      <div class="note">For the flops — donated, refunded, deleted, or bad buys. Log the lesson so you stop repeating it.</div>
+      <div class="row mt">
+        <div><label>Item</label><input id="gv_item" placeholder="e.g. random black blouse" /></div>
+        <div style="max-width:130px"><label>Money lost ($)</label><input id="gv_lost" type="number" inputmode="decimal" placeholder="0.00" /></div>
+      </div>
+      <label class="mt">Lesson (optional)</label>
+      <input id="gv_lesson" placeholder="e.g. stop buying random blouses" />
+      <button class="btn ghost" onclick="addGrave()">Bury it 🪦</button>
+      <div class="graves" id="graveList"></div>
     </div>
   </section>
 
@@ -483,7 +532,7 @@
 /* ---------- state ---------- */
 const KEY = 'depop_tracker_v1';
 let DB = load();
-function blank(){return {sales:[],budget:[],inventory:[],bills:[],goals:[],badges:[],topseller:{},jarMoved:0,settings:{taxRate:25,taxBase:'profit',defaultFee:'',startBalance:0,soundOn:true,monthlyGoal:0,k1099Threshold:5000},cloudCfg:null,updated:0}}
+function blank(){return {sales:[],budget:[],inventory:[],bills:[],goals:[],badges:[],topseller:{},graveyard:[],jarMoved:0,settings:{taxRate:25,taxBase:'profit',defaultFee:'',startBalance:0,soundOn:true,monthlyGoal:0,k1099Threshold:5000},cloudCfg:null,updated:0}}
 function load(){ try{const r=localStorage.getItem(KEY);return r?Object.assign(blank(),JSON.parse(r)):blank()}catch(e){return blank()} }
 function persist(){ DB.updated=Date.now(); localStorage.setItem(KEY,JSON.stringify(DB)); if(SB&&USER) pushCloud(); }
 const money=n=>'$'+(Math.round((+n||0)*100)/100).toLocaleString('en-US',{minimumFractionDigits:(n%1?2:0),maximumFractionDigits:2});
@@ -534,7 +583,10 @@ function addSale(){
   document.getElementById('s_refunded').checked=false;
   document.getElementById('s_preview').textContent='';
   render();
-  if(celebrate){ chaching(); confetti(); }
+  if(celebrate){
+    const last=DB.sales[0], pp=profitOf(last), mm=last.price?pp/last.price:0;
+    if(pp<=0 || mm<0.18){ priceGhost(last); } else { chaching(); confetti(); }
+  }
 }
 function editSale(id){
   const s=DB.sales.find(x=>x.id===id); if(!s) return;
@@ -652,10 +704,58 @@ function renderInventory(){
   document.getElementById('iv_count').textContent=DB.inventory.length;
   document.getElementById('iv_cash').textContent=money(DB.inventory.reduce((a,i)=>a+(+i.paid||0),0));
   const L=document.getElementById('invList');
-  L.innerHTML=DB.inventory.length?DB.inventory.map(i=>{
-    const age=daysSince(i.date), old=age>30;
-    return `<div class="item"><div><div class="nm">${esc(i.item)}${old?' <span class="pill" style="background:#f4ddd5;color:#b5543c">sitting '+age+'d</span>':''}</div><div class="meta">added ${i.date}${i.paid?' · paid '+money(i.paid):''} · ${age}d old</div></div><button class="btn ghost sm" onclick="markSold('${i.id}')">Sold</button><button class="del" onclick="delInventory('${i.id}')">×</button></div>`;
-  }).join(''):'<div class="empty">Nothing in stock yet. Add what you\'ve sourced above 📦</div>';
+  if(!DB.inventory.length){ L.innerHTML='<div class="empty">Nothing in stock yet. Add what you\'ve sourced above 📦</div>'; return; }
+  L.innerHTML='<div class="tags">'+DB.inventory.map(i=>{
+    const age=daysSince(i.date), dusty=age>30;
+    return `<div class="tag${dusty?' dusty':''}">
+      <div class="t-name">${esc(i.item)}</div>
+      <div class="t-meta">${i.paid?money(i.paid)+' paid':'—'} · ${age}d old</div>
+      ${dusty?'<div class="t-dust">dusty</div>':''}
+      <div class="tag-row"><button class="t-sold" onclick="markSold('${i.id}')">Sold</button><button class="t-del" onclick="delInventory('${i.id}')">×</button></div>
+    </div>`;
+  }).join('')+'</div>';
+}
+/* ---------- offer brain ---------- */
+function offerBrain(){
+  const offer=+v('ob_offer')||0, cost=+v('ob_cost')||0, fee=+v('ob_fee')||0, ship=+v('ob_ship')||0;
+  const V=document.getElementById('ob_verdict'), D=document.getElementById('ob_detail');
+  if(!offer){ V.innerHTML=''; D.innerHTML=''; return; }
+  const profit=offer-cost-fee-ship;
+  const margin=offer?Math.round(profit/offer*100):0;
+  const safe=cost+fee+ship+3;
+  let verdict,color,sass;
+  if(offer<cost){ verdict='Decline'; color='var(--neg)'; sass='they\'re playing in your face 😭'; }
+  else if(profit<=0){ verdict='Decline'; color='var(--neg)'; sass='you\'d lose money on this'; }
+  else if(margin>=30){ verdict='Accept ✦'; color='var(--pos)'; sass='clean profit — take it'; }
+  else { const counter=Math.ceil(cost+fee+ship+6); verdict='Counter at $'+counter; color='#7e9cc1'; sass='too thin — ask for more'; }
+  V.innerHTML='<span style="color:'+color+'">'+verdict+'</span>';
+  D.innerHTML='profit if accepted ... '+money(profit)+'<br>margin ... '+margin+'%<br>lowest safe price ... '+money(safe)+'<br><span style="color:'+color+'">'+sass+'</span>';
+}
+/* ---------- graveyard ---------- */
+function addGrave(){
+  const item=v('gv_item').trim(); if(!item){ document.getElementById('gv_item').focus(); return; }
+  if(!DB.graveyard) DB.graveyard=[];
+  DB.graveyard.unshift({id:uid(),item,lost:+v('gv_lost')||0,lesson:v('gv_lesson').trim()});
+  persist();
+  document.getElementById('gv_item').value=''; document.getElementById('gv_lost').value=''; document.getElementById('gv_lesson').value='';
+  render(); flash('Buried 🪦');
+}
+function delGrave(id){ DB.graveyard=DB.graveyard.filter(g=>g.id!==id); persist(); render(); }
+function renderGraveyard(){
+  const L=document.getElementById('graveList'); if(!L) return;
+  if(!DB.graveyard) DB.graveyard=[];
+  L.innerHTML=DB.graveyard.length?DB.graveyard.map(g=>`<div class="grave"><button class="g-del" onclick="delGrave('${g.id}')">×</button><div class="g-item">✝ ${esc(g.item)}</div><div class="g-sub">lost ${money(g.lost)}</div>${g.lesson?`<div class="g-lesson">"${esc(g.lesson)}"</div>`:''}</div>`).join(''):'<div class="empty">Empty for now. Every flop is a lesson 🤍</div>';
+}
+/* ---------- price ghosts ---------- */
+function priceGhost(s){
+  const p=profitOf(s), fee=+s.fee||0, ship=+s.ship||0, cost=+s.cost||0;
+  let reason;
+  if(p<=0 && cost>=s.price*0.8) reason='cost was too high';
+  else if(fee>=ship && fee>Math.max(0,p)) reason='fees ate it';
+  else if(ship>Math.max(0,p)) reason='shipping hurt you';
+  else if(cost>=s.price*0.6) reason='cost was too high';
+  else reason='sold a little low';
+  document.getElementById('s_preview').innerHTML='<span style="color:#8a82b4">👻 girl, this price was haunted — '+reason+'</span>';
 }
 function renderTopEarners(){
   const L=document.getElementById('topEarners'); if(!L) return;
@@ -1135,7 +1235,7 @@ function flash(msg){
   clearTimeout(flashT); flashT=setTimeout(()=>el.style.opacity='0',2600);
   el.style.transition='opacity .3s';
 }
-function render(){ renderTopSeller(); renderDashboard(); renderJar(); renderSales(); renderKPIs(); renderRevGoal(); renderTopEarners(); renderInventory(); renderTax(); renderQuarterly(); renderPnL(); render1099(); renderBudget(); renderBills(); renderGoals(); renderBadges(); renderSettings(); }
+function render(){ renderTopSeller(); renderDashboard(); renderJar(); renderSales(); renderKPIs(); renderRevGoal(); renderTopEarners(); renderInventory(); renderGraveyard(); renderTax(); renderQuarterly(); renderPnL(); render1099(); renderBudget(); renderBills(); renderGoals(); renderBadges(); renderSettings(); }
 
 /* ---------- first-time tutorial ---------- */
 const OB=[
