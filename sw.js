@@ -1,5 +1,5 @@
 // Minimal offline cache — app keeps working with no signal.
-const CACHE = 'depop-tracker-v25';
+const CACHE = 'depop-tracker-v26';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

@@ -534,7 +534,19 @@ const KEY = 'depop_tracker_v1';
 let DB = load();
 function blank(){return {sales:[],budget:[],inventory:[],bills:[],goals:[],badges:[],topseller:{},graveyard:[],jarMoved:0,settings:{taxRate:25,taxBase:'profit',defaultFee:'',startBalance:0,soundOn:true,monthlyGoal:0,k1099Threshold:5000},cloudCfg:null,updated:0}}
 function load(){ try{const r=localStorage.getItem(KEY);return r?Object.assign(blank(),JSON.parse(r)):blank()}catch(e){return blank()} }
-function persist(){ DB.updated=Date.now(); localStorage.setItem(KEY,JSON.stringify(DB)); if(SB&&USER) pushCloud(); }
+function persist(){ DB.updated=Date.now(); localStorage.setItem(KEY,JSON.stringify(DB)); if(SB&&USER){ pushCloud(); scheduleBackup(); } }
+let backupTimer=null;
+function scheduleBackup(){ if(!(SB&&USER)) return; clearTimeout(backupTimer); backupTimer=setTimeout(backupNow, 4000); }
+async function backupNow(){
+  if(!(SB&&USER)) return;
+  const hasData=(DB.sales&&DB.sales.length)||(DB.budget&&DB.budget.length)||(DB.inventory&&DB.inventory.length)||(DB.graveyard&&DB.graveyard.length);
+  if(!hasData) return;
+  try{
+    await SB.from('tracker_backups').insert({user_id:USER.id,data:DB});
+    const {data:all}=await SB.from('tracker_backups').select('id').eq('user_id',USER.id).order('created_at',{ascending:false});
+    if(all&&all.length>30){ await SB.from('tracker_backups').delete().in('id', all.slice(30).map(r=>r.id)); }
+  }catch(e){}
+}
 const money=n=>'$'+(Math.round((+n||0)*100)/100).toLocaleString('en-US',{minimumFractionDigits:(n%1?2:0),maximumFractionDigits:2});
 const monthKey=d=>(d||new Date().toISOString().slice(0,10)).slice(0,7);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
