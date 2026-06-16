@@ -646,7 +646,7 @@ function renderSales(){
     return `<div class="item"${ref?' style="opacity:.5"':''}>
       <div><div class="nm">${esc(s.item)}${ref?' <span class="pill" style="background:#dfe7f1;color:#7a8aa0">refunded</span>':''}</div>
       <div class="meta">${s.date} · sold ${money(s.price)}${s.cost?' · cost '+money(s.cost):''}${s.fee?' · fee '+money(s.fee):''}</div></div>
-      <div class="amt ${p<0?'neg':'pos'}">${money(p)}<small>profit</small></div>
+      <div class="amt ${p<0?'neg':'pos'}">${money(p)}<small>profit</small>${ref?'':'<small style="color:var(--blue-deep)">set aside '+money(taxOf(s))+'</small>'}</div>
       <button class="edit" onclick="editSale('${s.id}')" title="Edit">✎</button>
       <button class="del" onclick="delSale('${s.id}')">×</button></div>`;
   }).join('')+'</div>';
@@ -672,6 +672,7 @@ function receiptCard(s){
     ${s.ship?line('ship',s.ship):''}
     <div class="r-rule"></div>
     <div class="r-total"><span>profit</span><span>${money(p)}</span></div>
+    ${s.refunded?'':`<div class="r-line"><span>tax jar</span><span class="dots"></span><span>${money(taxOf(s))}</span></div>`}
     <div class="r-stampwrap"><span class="r-stamp">${stampFor(s)}</span></div>
     <div class="r-date">${s.date}</div>
   </div>`;
